@@ -109,21 +109,4 @@ void srf_028000(void) {
     op_pla16();
 }
 
-/*
- * NMI work routine — placeholder for the actual NMI sub-handler
- * at $7E:A305 (ROM source offset $02:802C relative to $7E:A2D9).
- *
- * The real routine handles:
- * - Screen brightness update ($2100)
- * - OAM DMA transfer
- * - BG scroll register updates
- * - HDMA channel setup
- * - Frame counter increment
- * - Input polling
- * - GSU status check
- */
-void srf_NMI_work(void) {
-    /* Increment frame counter */
-    uint8_t fc = bus_wram_read8(0x05E9);
-    bus_wram_write8(0x05E9, fc + 1);
-}
+/* srf_NMI_work is implemented in srf_nmi.c */

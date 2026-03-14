@@ -14,6 +14,7 @@ add_subdirectory(ext/snesrecomp)
 add_library(srf_game STATIC
     src/recomp/srf_boot.c
     src/recomp/srf_init.c
+    src/recomp/srf_nmi.c
 )
 
 target_include_directories(srf_game PUBLIC ${CMAKE_SOURCE_DIR}/include)

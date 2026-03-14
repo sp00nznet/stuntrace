@@ -37,6 +37,8 @@ void srf_register_all(void) {
     func_table_register(0x03EB83, srf_03EB83);  /* VRAM DMA engine */
     func_table_register(0x03D996, srf_03D996);  /* title setup wrapper */
     func_table_register(0x03D9B9, srf_03D9B9);  /* title scene builder */
+    func_table_register(0x02E0A9, srf_02E0A9);  /* per-frame dispatch */
+    func_table_register(0x02D7CD, srf_02D7CD);  /* attract frame body */
 }
 
 /*
@@ -328,13 +330,24 @@ void srf_038C63(void) {
     op_sep(0x20);
     op_rep(0x10);
 
-    /* The real main loop calls subroutines and checks state.
-     * For now, we return to let the launcher drive frames.
-     * As more game logic is recompiled, this will expand. */
-
     /* Read $4211 to clear IRQ flag */
     bus_read8(0x00, 0x4211);
 
-    /* Enable NMI + auto-joypad read */
+    /* Enable NMI + auto-joypad read + IRQ */
     bus_write8(0x00, 0x4200, 0x81);
+
+    /* Per-frame dispatch — manages fade timing */
+    srf_02E0A9();
+
+    /* Attract mode frame body — main render loop
+     * (checks $0D62 to decide between attract and gameplay) */
+    op_sep(0x20);
+    uint8_t display_mode = bus_wram_read8(0x0D62);
+    if (display_mode == 0) {
+        srf_02D7CD();
+    }
+
+    /* Increment frame counter for NMI sync */
+    uint8_t fc = bus_wram_read8(0x05E9);
+    bus_wram_write8(0x05E9, fc + 1);
 }

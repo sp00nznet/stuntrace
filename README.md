@@ -75,12 +75,17 @@ We built a **complete GSU-2 emulator from scratch** and integrated it directly i
 | Title/attract wrapper ($03:D996) | Done |
 | Title screen tile/tilemap DMA | Done |
 | Title screen GSU program exec | Done |
-| Attract mode state machine | Not started |
+| Per-frame dispatch ($02:E0A9) | Done |
+| Attract mode frame body ($02:D7CD) | Done |
+| Camera/object setup ($02:DAD6) | Done |
+| Frame timing (60fps → seconds) | Done |
+| GSU 3D render pass (main + second) | Done |
+| Fade in/out management | Done |
 | Race gameplay | Not started |
 
-**Recompiled functions: 23** across 6 source files
+**Recompiled functions: 25** across 7 source files
 
-**Current state:** The title screen rendering pipeline is recompiled. The PPU is configured for BG Mode 3 (256-color BG1 + 4-color BG2). The scene builder at $03:D9B9 runs multiple GSU programs to decompress tile graphics, tilemaps, and palettes from ROM into GSU work RAM at bank $70, then DMA transfers them to VRAM using the table-driven DMA engine at $03:EB83. The GSU launch protocol at $7E:E1F5 handles the full 65816↔GSU handshake: write PBR/SCMR, trigger via R15, spin on GO flag, restore bus ownership. BG1 tilemap at VRAM $3D00, BG2 at $2D00, tiles at $0000/$6000. Next: attract mode state machine and per-frame game logic.
+**Current state:** The attract mode frame loop is running. Every frame: the per-frame dispatch manages fade timing ($02:E0A9), then the attract body ($02:D7CD) reads the object/camera state table from WRAM $7E:204F, sets up 3D camera position, launches the main GSU 3D render pass (program at $BBC7), processes palettes and display updates, optionally runs a second GSU pass ($D307), and accumulates frame timing for the 60fps→seconds counter. The GSU renders to bank $70 work RAM, and the NMI VBlank handler DMAs the result to VRAM. The full pipeline from boot to per-frame rendering is now traced and recompiled.
 
 ## Building
 

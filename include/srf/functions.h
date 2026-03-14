@@ -49,6 +49,10 @@ void srf_03EB83(void);  /* VRAM DMA engine (table-driven from GSU RAM) */
 void srf_03D996(void);  /* Title/attract setup (outer wrapper) */
 void srf_03D9B9(void);  /* Title screen scene builder */
 
+/* === Bank $02 — Attract Mode === */
+void srf_02E0A9(void);  /* Per-frame dispatch (fade management) */
+void srf_02D7CD(void);  /* Attract mode frame body (main render loop) */
+
 /* === GSU === */
 void srf_GSU_launch(void);  /* GSU program launcher ($7E:E1F5) */
 

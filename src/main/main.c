@@ -47,20 +47,17 @@ int main(int argc, char **argv) {
     printf("Recompiled functions registered.\n");
 
     /* ── boot ───────────────────────────────────────────── */
-    printf("Executing reset vector...\n");
-    srf_008000();
+    printf("Executing reset vector ($00:FE88)...\n");
+    srf_00FE88();
 
     /* ── frame loop ─────────────────────────────────────── */
     printf("Entering frame loop.\n");
     while (snesrecomp_begin_frame()) {
-        /* clear NMI-done flag */
-        bus_wram_write8(0x0044, 0x00);
-
-        /* run NMI handler */
-        srf_008018();
+        /* run NMI handler (the real one from $02:8000) */
+        srf_028000();
 
         /* run one iteration of game logic */
-        srf_0080C0();
+        srf_038C63();
 
         /* render + present */
         snesrecomp_end_frame();

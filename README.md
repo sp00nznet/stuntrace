@@ -44,18 +44,28 @@ We built a **complete GSU-2 emulator from scratch** and integrated it directly i
 | GSU-2 emulator (in snesrecomp) | Done |
 | GSU bus API (read/write/run) | Done |
 | Super FX cart type detection | Done |
-| Reset vector / boot sequence | Done |
-| NMI handler | Done |
-| Hardware init (PPU/DMA clear) | Done |
-| Main loop dispatcher | Stubbed |
+| 65816 disassembler tool | Done |
+| Reset vector ($00:FE88) | Done |
+| Full HW init ($03:89B4) | Done |
+| WRAM clear via DMA ($03:8CF6) | Done |
+| Full init chain ($03:8AA9) | Done |
+| NMI handler ($02:8000) | Done |
+| NMI WRAM trampoline setup | Done |
+| NMI DMA copy to WRAM ($7E:A2D9) | Done |
+| GSU register setup (CFGR/SCBR/CLSR) | Done |
+| Game data DMA to WRAM | Done |
+| GSU work RAM clear ($70:0000) | Done |
+| Main loop entry ($03:8C63) | Stubbed |
+| NMI work routine ($7E:A305) | Stubbed |
 | Title screen rendering | Not started |
 | Super FX 3D rendering | Not started |
-| Attract mode | Not started |
-| Menus | Not started |
+| Attract mode / menus | Not started |
 | Race gameplay | Not started |
 | Audio (SPC700 driver) | Not started |
 
-**Current state:** The project builds and links cleanly. The GSU-2 coprocessor is fully emulated inside snesrecomp — 16 registers, ~90 opcodes, 512-byte instruction cache, pixel plot engine with 2-entry write-back cache, full I/O register interface at $3000-$303F. The 65816 boot chain executes (reset vector → hardware init → NMI handler → main loop). We're at the "both CPUs are wired up and ready to race" stage.
+**Recompiled functions: 8** (reset, NMI, HW init, WRAM clear, full init, GSU setup, main loop, NMI work stub)
+
+**Current state:** The entire boot chain now executes from the actual ROM disassembly. The reset vector at $FE88 jumps to the real init at $03:8AA9, which initializes all PPU/DMA/CPU registers, clears 200+ KB of WRAM, copies the NMI handler code ($02:8000, 21 KB) to WRAM at $7E:A2D9, sets up the NMI trampoline at $00:0108, configures the Super FX (CFGR=$20, SCBR=$0B, CLSR=high-speed), and enters the main loop. The NMI handler at $02:8000 properly acknowledges NMI, checks the GSU status register, and dispatches to the work routine. We've gone from "blank screen" to "hardware is fully initialized and the game's memory layout matches the original."
 
 ## Building
 

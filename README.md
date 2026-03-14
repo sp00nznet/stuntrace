@@ -91,11 +91,19 @@ We built a **complete GSU-2 emulator from scratch** and integrated it directly i
 | WRAM jump table patches ($09:ECE0) | Done |
 | P1/P2 input edge detection | Done |
 | GSU object visibility flags | Done |
-| Race gameplay | Not started |
+| Gameplay frame body ($0B:FB26) | Done |
+| 2-player split-screen viewports | Done |
+| Viewport config init ($08:B893) | Done |
+| Scene config loader ($03:8683) | Done |
+| Scene reset - 3 configs ($03:865E) | Done |
+| Full game restart ($03:8C86) | Done |
+| Main loop mode dispatch | Done |
+| Frame timeout logic | Done |
+| Race gameplay logic | Not started |
 
-**Recompiled functions: 32** across 9 source files
+**Recompiled functions: 37** across 10 source files
 
-**Current state:** 32 functions recompiled across 9 source files. The complete game loop from power-on through attract mode is functional: boot → HW init → audio upload → title screen setup → per-frame rendering with GSU 3D passes → input polling → state transitions. The object system processes both P1 and P2 game objects with input edge detection and GSU visibility flag management. Display mode setup converts RGB to SNES 15-bit BGR and configures NMI/IRQ. WRAM patches are installed for jump table dispatch. The next frontier is the menu system (character/track select) and the race mode game logic.
+**Current state:** 37 functions across 10 source files. Both attract and gameplay frame loops are recompiled. The main loop at $03:8C63 dispatches between attract ($02:D7CD) and gameplay ($0B:FB26) based on $0D62. The gameplay body handles 2-player split-screen with dual GSU render passes — P1 at $BBC7, P2 offset by $0140 pixels. Scene management loads configs from ROM tables at $03:8004+ and resets GSU state. Full game restart clears all WRAM, re-uploads audio, and re-enters init. The frame timeout at 30 frames clears $0713 to advance states. Next: race mode physics, track loading, and vehicle control.
 
 ## Building
 

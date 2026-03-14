@@ -61,8 +61,17 @@ void srf_0BAE8F(void);  /* Check for input (Start press) */
 void srf_03D306(void);  /* Camera angle calculation (3D → screen) */
 void srf_03D388(void);  /* Object/animation linked list processing */
 
-/* === Bank $08 — Object System === */
+/* === Bank $08 — Object System / Viewport === */
 void srf_08C5A5(void);  /* Object system main update (P1/P2 processing) */
+void srf_08B893(void);  /* Viewport configuration init */
+
+/* === Bank $0B — Gameplay === */
+void srf_0BFB26(void);  /* Gameplay/menu frame body (2P capable) */
+
+/* === Bank $03 — Scene Management === */
+void srf_038683(void);  /* Scene config loader from ROM table */
+void srf_03865E(void);  /* Scene reset (3 scene configs) */
+void srf_038C86(void);  /* Full game restart */
 
 /* === Bank $09 — WRAM Patches === */
 void srf_09ECE0(void);  /* Copy jump table patches to WRAM */

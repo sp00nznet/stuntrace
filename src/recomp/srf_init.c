@@ -46,6 +46,11 @@ void srf_register_all(void) {
     func_table_register(0x08C5A5, srf_08C5A5);  /* object system main */
     func_table_register(0x09ECE0, srf_09ECE0);  /* WRAM patches */
     func_table_register(0x02E289, srf_02E289);  /* display mode setup */
+    func_table_register(0x08B893, srf_08B893);  /* viewport config */
+    func_table_register(0x0BFB26, srf_0BFB26);  /* gameplay frame body */
+    func_table_register(0x038683, srf_038683);  /* scene config loader */
+    func_table_register(0x03865E, srf_03865E);  /* scene reset */
+    func_table_register(0x038C86, srf_038C86);  /* full game restart */
 }
 
 /*
@@ -340,21 +345,28 @@ void srf_038C63(void) {
     /* Read $4211 to clear IRQ flag */
     bus_read8(0x00, 0x4211);
 
-    /* Enable NMI + auto-joypad read + IRQ */
+    /* Enable NMI + auto-joypad read */
     bus_write8(0x00, 0x4200, 0x81);
 
     /* Per-frame dispatch — manages fade timing */
     srf_02E0A9();
 
-    /* Attract mode frame body — main render loop
-     * (checks $0D62 to decide between attract and gameplay) */
+    /* Dispatch based on game mode:
+     * $0D62 == 0: attract mode → $02:D7CD
+     * $0D62 != 0: gameplay/menu → $0B:FB26 */
     op_sep(0x20);
     uint8_t display_mode = bus_wram_read8(0x0D62);
-    if (display_mode == 0) {
+    if (display_mode != 0) {
+        srf_0BFB26();
+    } else {
         srf_02D7CD();
     }
 
-    /* Increment frame counter for NMI sync */
+    /* Check frame counter threshold for timeout logic
+     * Original: if $05E9 >= $1E (30 frames), clear $0713 */
+    op_sep(0x20);
     uint8_t fc = bus_wram_read8(0x05E9);
-    bus_wram_write8(0x05E9, fc + 1);
+    if (fc >= 0x1E) {
+        bus_wram_write8(0x0713, 0x00);
+    }
 }

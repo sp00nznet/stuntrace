@@ -27,6 +27,8 @@ void srf_register_all(void) {
     func_table_register(0x038AA9, srf_038AA9);  /* full init entry */
     func_table_register(0x038CF6, srf_038CF6);  /* WRAM DMA clear */
     func_table_register(0x038C63, srf_038C63);  /* main loop */
+    func_table_register(0x04D44C, srf_04D44C);  /* SPC700 audio upload */
+    func_table_register(0x04D720, srf_04D720);  /* IPL transfer */
 }
 
 /*
@@ -225,6 +227,10 @@ void srf_038AA9(void) {
     for (uint32_t i = 1; i <= 0x27FF; i++) {
         bus_write8(0x70, (uint16_t)i, 0x00);
     }
+
+    /* ── Upload SPC700 audio engine ────────────────────── */
+    /* JSL $04D44C */
+    srf_04D44C();
 
     /* ── Copy vector table stub to WRAM $00:0101 ─────── */
     /* Source: $03:8D16, 16 bytes → WRAM $0101 */

@@ -56,16 +56,21 @@ We built a **complete GSU-2 emulator from scratch** and integrated it directly i
 | Game data DMA to WRAM | Done |
 | GSU work RAM clear ($70:0000) | Done |
 | Main loop entry ($03:8C63) | Stubbed |
-| NMI work routine ($7E:A305) | Stubbed |
+| NMI state machine dispatch | Done |
+| NMI state 0 (title VBlank) | Done |
+| NMI state 1 (force blank / DMA) | Done |
+| NMI state 4 (gameplay VBlank) | Done |
+| NMI state 8 (gameplay force-blank) | Done |
+| SPC700 audio engine upload | Done |
+| IPL transfer protocol | Done |
 | Title screen rendering | Not started |
 | Super FX 3D rendering | Not started |
 | Attract mode / menus | Not started |
 | Race gameplay | Not started |
-| Audio (SPC700 driver) | Not started |
 
-**Recompiled functions: 8** (reset, NMI, HW init, WRAM clear, full init, GSU setup, main loop, NMI work stub)
+**Recompiled functions: 14** across 4 source files
 
-**Current state:** The entire boot chain now executes from the actual ROM disassembly. The reset vector at $FE88 jumps to the real init at $03:8AA9, which initializes all PPU/DMA/CPU registers, clears 200+ KB of WRAM, copies the NMI handler code ($02:8000, 21 KB) to WRAM at $7E:A2D9, sets up the NMI trampoline at $00:0108, configures the Super FX (CFGR=$20, SCBR=$0B, CLSR=high-speed), and enters the main loop. The NMI handler at $02:8000 properly acknowledges NMI, checks the GSU status register, and dispatches to the work routine. We've gone from "blank screen" to "hardware is fully initialized and the game's memory layout matches the original."
+**Current state:** The full boot chain runs from actual ROM disassembly. The NMI state machine dispatches 4 different VBlank handlers for title/gameplay modes. The SPC700 audio engine is uploaded via the IPL boot protocol. All hardware registers are initialized, 200+ KB of WRAM is cleared, the NMI trampoline is installed, and the Super FX is configured. The game reaches its main frame loop with both CPUs wired up and audio hardware initialized. Next target: title screen tile/palette loading and attract mode state machine.
 
 ## Building
 

@@ -31,4 +31,8 @@ void srf_038AA9(void);  /* Full init: HW init, WRAM clear, DMA, GSU setup */
 void srf_038CF6(void);  /* WRAM DMA clear: A=bank, X=addr, Y=count */
 void srf_038C63(void);  /* Main game loop entry */
 
+/* === Bank $04 — Audio === */
+void srf_04D44C(void);  /* SPC700 audio engine upload */
+void srf_04D720(void);  /* IPL transfer routine */
+
 #endif /* SRF_FUNCTIONS_H */

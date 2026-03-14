@@ -12,8 +12,21 @@
 
 #include <snesrecomp/cpu.h>
 #include <snesrecomp/bus.h>
+#include <snesrecomp/func_table.h>
 #include <srf/cpu_ops.h>
 #include <srf/functions.h>
+
+/*
+ * Register all recompiled functions in the dispatch table.
+ * This allows indirect calls (JSR/JSL to computed addresses)
+ * to find the right native function.
+ */
+void srf_register_all(void) {
+    func_table_register(0x00FE88, srf_008000);  /* reset vector */
+    func_table_register(0x000108, srf_008018);  /* NMI handler */
+    func_table_register(0x00804A, srf_00804A);  /* hardware init */
+    func_table_register(0x0080C0, srf_0080C0);  /* main loop */
+}
 
 /*
  * $00:804A — Hardware init

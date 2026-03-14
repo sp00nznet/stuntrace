@@ -6,6 +6,11 @@
  *
  * This file covers the reset vector, initial hardware setup,
  * and the NMI handler that drives each frame.
+ *
+ * ROM vectors (from header at $7FEA-$7FFF):
+ *   Reset: $FE88
+ *   NMI:   $0108
+ *   IRQ:   $010C
  */
 
 #include <snesrecomp/cpu.h>
@@ -14,60 +19,55 @@
 #include <srf/functions.h>
 
 /*
- * $00:8000 — Reset vector entry point
+ * $00:FE88 — Reset vector entry point
  *
  * The 65816 jumps here on power-on / reset.
- * Sets native mode, configures stack, disables interrupts,
- * and falls through to hardware init.
+ * Sets native mode, disables interrupts, and jumps to the
+ * main initialization code.
  *
- * Original disassembly:
- *   00:8000  78        SEI
- *   00:8001  18        CLC
- *   00:8002  FB        XCE          ; switch to native mode
- *   00:8003  C2 30     REP #$30     ; 16-bit A, X, Y
- *   00:8005  A9 FF 01  LDA #$01FF
- *   00:8008  1B        TCS          ; SP = $01FF
- *   00:8009  A9 00 00  LDA #$0000
- *   00:800C  5B        TCD          ; DP = $0000
- *   00:800D  E2 20     SEP #$20     ; 8-bit A
- *   00:800F  A9 80     LDA #$80
- *   00:8011  8D 00 21  STA $2100    ; force blank on
- *   00:8014  9C 00 42  STZ $4200    ; disable NMI/IRQ
- *   00:8017  4C 4A 80  JMP $804A    ; → hardware init
+ * Bytes at reset vector:
+ *   FE88: 78        SEI
+ *   FE89: 18        CLC
+ *   FE8A: FB        XCE          ; switch to native mode
+ *   FE8B: D8        CLD          ; clear decimal mode
+ *   FE8C: 5C A9 8A 03  JML $038AA9  ; jump to init in bank $03
  */
 void srf_008000(void) {
     OP_SEI();
     OP_CLC();
     op_xce();                          /* native mode */
+    OP_CLD();                          /* clear decimal */
 
-    op_rep(0x30);                      /* 16-bit A/X/Y */
-    op_lda_imm16(0x01FF);
-    OP_TCS();                          /* SP = $01FF */
-    op_lda_imm16(0x0000);
-    OP_TCD();                          /* DP = $0000 */
-
-    op_sep(0x20);                      /* 8-bit A */
-    op_lda_imm8(0x80);
-    bus_write8(0x00, 0x2100, 0x80);    /* force blank */
-    bus_write8(0x00, 0x4200, 0x00);    /* disable NMI */
-
-    srf_00804A();                      /* → hardware init */
+    /* JML $03:8AA9 — jump to full initialization
+     * For now, we call our local init stub.
+     * As more functions are recompiled, this will dispatch
+     * to the actual $03:8AA9 init routine.
+     */
+    srf_00804A();
 }
 
 /*
- * $00:8018 — NMI handler
+ * $00:0108 — NMI handler
  *
- * Called every V-blank. Acknowledges the NMI, updates the
- * frame counter, and dispatches per-state NMI work.
+ * Called every V-blank. The game uses this to update the screen
+ * brightness, handle DMA transfers, and synchronize the Super FX.
  *
- * Original disassembly:
- *   00:8018  08        PHP
- *   00:8019  C2 30     REP #$30
- *   00:801B  48        PHA
- *   00:801C  DA        PHX
- *   00:801D  AD 10 42  LDA $4210    ; acknowledge NMI
- *   00:8020  EE xx xx  INC $nnnn    ; frame counter++
- *   ...
+ * Bytes at NMI vector:
+ *   0108: 4A        LSR A
+ *   0109: 4A        LSR A
+ *   010A: 4A        LSR A
+ *   010B: D0 03     BNE $0110
+ *   010D: A9 01 00  LDA #$0001
+ *   0110: 18        CLC
+ *   0111: 6D 19 07  ADC $0719      ; add to brightness accumulator
+ *   0114: 8D 19 07  STA $0719
+ *   0117: E2 20     SEP #$20       ; 8-bit A
+ *   0119: AD 19 07  LDA $0719
+ *   011C: 8D 0E 21  STA $210E      ; BG3 H-scroll
+ *   011F: AD 1A 07  LDA $071A
+ *   0122: 8D 0E 21  STA $210E      ; BG3 H-scroll high
+ *   0125: A9 03     LDA #$03
+ *   0127: 8D 40 21  STA $2140      ; APU port 0
  */
 void srf_008018(void) {
     op_php();

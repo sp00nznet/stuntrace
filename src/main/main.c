@@ -23,8 +23,8 @@ int main(int argc, char **argv) {
     printf("=== Stunt Race FX — Static Recompilation ===\n");
     printf("    snesrecomp + LakeSnes backend\n\n");
 
-    /* ── platform init ──────────────────────────────────── */
-    if (snesrecomp_init("Stunt Race FX", 768, 672) != 0) {
+    /* ── platform init (scale = 3 → 768x672 window) ──── */
+    if (!snesrecomp_init("Stunt Race FX", 3)) {
         fprintf(stderr, "snesrecomp_init failed\n");
         return 1;
     }
@@ -32,9 +32,14 @@ int main(int argc, char **argv) {
     /* ── load ROM ───────────────────────────────────────── */
     const char *rom = find_rom_path(argc, argv);
     printf("Loading ROM: %s\n", rom);
-    if (snesrecomp_load_rom(rom) != 0) {
+    if (!snesrecomp_load_rom(rom)) {
         fprintf(stderr, "Failed to load ROM: %s\n", rom);
         return 1;
+    }
+
+    /* ── check for GSU ──────────────────────────────────── */
+    if (bus_has_gsu()) {
+        printf("Super FX GSU-2 coprocessor detected!\n");
     }
 
     /* ── register recompiled functions ──────────────────── */
@@ -47,8 +52,7 @@ int main(int argc, char **argv) {
 
     /* ── frame loop ─────────────────────────────────────── */
     printf("Entering frame loop.\n");
-    int running = 1;
-    while (running) {
+    while (snesrecomp_begin_frame()) {
         /* clear NMI-done flag */
         bus_wram_write8(0x0044, 0x00);
 
@@ -59,10 +63,7 @@ int main(int argc, char **argv) {
         srf_0080C0();
 
         /* render + present */
-        snesrecomp_frame();
-
-        /* check for quit (escape key) */
-        running = !snesrecomp_should_quit();
+        snesrecomp_end_frame();
     }
 
     snesrecomp_shutdown();

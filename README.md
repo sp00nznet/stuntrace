@@ -33,24 +33,29 @@ Most SNES recompilations only need to worry about the 65816. Stunt Race FX broug
 
 This means we're not just recompiling one CPU — we're recompiling *two*. Buckle up.
 
+We built a **complete GSU-2 emulator from scratch** and integrated it directly into [snesrecomp](https://github.com/sp00nznet/snesrecomp)'s LakeSnes backend. It's now available for any Super FX game recompilation, not just this one. Full instruction set, pixel cache, instruction cache, the works. Written in pure C, MIT licensed, zero external dependencies.
+
 ## Status
 
 | Milestone | Status |
 |-----------|--------|
 | Project scaffolding | Done |
 | snesrecomp integration | Done |
+| GSU-2 emulator (in snesrecomp) | Done |
+| GSU bus API (read/write/run) | Done |
+| Super FX cart type detection | Done |
 | Reset vector / boot sequence | Done |
 | NMI handler | Done |
 | Hardware init (PPU/DMA clear) | Done |
 | Main loop dispatcher | Stubbed |
 | Title screen rendering | Not started |
-| Super FX 2 integration | Not started |
+| Super FX 3D rendering | Not started |
 | Attract mode | Not started |
 | Menus | Not started |
 | Race gameplay | Not started |
 | Audio (SPC700 driver) | Not started |
 
-**Current state:** The boot chain executes — reset vector → hardware init → NMI handler → main loop entry. We're at the "staring at a blank screen with all the registers correctly zeroed" stage. The beautiful calm before the polygonal storm.
+**Current state:** The project builds and links cleanly. The GSU-2 coprocessor is fully emulated inside snesrecomp — 16 registers, ~90 opcodes, 512-byte instruction cache, pixel plot engine with 2-entry write-back cache, full I/O register interface at $3000-$303F. The 65816 boot chain executes (reset vector → hardware init → NMI handler → main loop). We're at the "both CPUs are wired up and ready to race" stage.
 
 ## Building
 
@@ -101,10 +106,13 @@ stuntrace/
 ├── src/
 │   ├── recomp/            # Recompiled game code
 │   │   ├── srf_boot.c     #   Reset vector, NMI handler
-│   │   └── srf_init.c     #   Hardware init, main loop entry
+│   │   └── srf_init.c     #   Hardware init, main loop, func registration
 │   └── main/
 │       └── main.c         #   Launcher / frame loop
 ├── ext/snesrecomp/        # SNES hardware library (submodule)
+│   └── ext/LakeSnes/snes/
+│       ├── gsu.h          #   ★ GSU-2 coprocessor header (new!)
+│       └── gsu.c          #   ★ GSU-2 coprocessor emulation (new!)
 ├── tools/                 # Disassembly & trace tooling
 ├── CMakeLists.txt
 ├── CLAUDE.md              # Developer notes

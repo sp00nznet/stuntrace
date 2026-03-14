@@ -68,7 +68,7 @@ We built a **complete GSU-2 emulator from scratch** and integrated it directly i
 | Screen setup / scene transition ($02:CF45) | Done |
 | Display mode DMA dispatcher ($03:DD1B) | Partial |
 | GSU framebuffer → VRAM DMA (race mode) | Done |
-| GSU program launcher | Stubbed |
+| GSU program launcher ($7E:E1F5) | Done |
 | Title screen tile loading | Not started |
 | Super FX 3D rendering pipeline | Not started |
 | Attract mode state machine | Not started |

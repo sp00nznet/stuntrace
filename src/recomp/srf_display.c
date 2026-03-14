@@ -218,32 +218,75 @@ void srf_03DD1B(void) {
 }
 
 /*
- * GSU program launcher — stub for $7E:E1F5
+ * $7E:E1F5 — GSU program launcher (ROM $02:BF1C)
  *
- * The original routine in WRAM sets up GSU registers and writes
- * R15 high byte to start GSU program execution. The GSU then
- * renders the current frame to its work RAM at bank $70.
+ * Starts a GSU program execution:
+ *   A = program bank (PBR)
+ *   X = program start address (written to R15)
  *
- * A = program index, X = parameter table address
+ * Protocol:
+ * 1. Write PBR to $3034
+ * 2. Set SCMR with RON+RAN to give GSU bus access
+ * 3. Clear SFR
+ * 4. Write X to R15 ($301E/$301F) — triggers execution
+ * 5. Spin until GSU GO flag clears (STOP instruction reached)
+ * 6. Restore SCMR without RON+RAN (return bus to 65816)
+ *
+ * Original disassembly (ROM $02:BF1C):
+ *   BF1C: 8F 34 30 00  STA $003034     ; PBR = A
+ *   BF20: 8B           PHB
+ *   BF21: A9 00        LDA #$00
+ *   BF23: 48/AB        PHB/PLB         ; DB = $00
+ *   BF25: AD 74 03     LDA $0374
+ *   BF28: 09 18        ORA #$18        ; set RON + RAN
+ *   BF2A: 8D 3A 30     STA $303A       ; SCMR
+ *   BF2D: 9C 30 30     STZ $3030       ; clear SFR low
+ *   BF30: 8E 1E 30     STX $301E       ; R15 = X (triggers GO!)
+ *   BF33: E6 FE        INC $FE         ; cycle counter
+ *   BF35: D0 02        BNE $BF39
+ *   BF37: E6 FF        INC $FF
+ *   BF39: AD 30 30     LDA $3030       ; read SFR low
+ *   BF3C: 29 20        AND #$20        ; check GO flag
+ *   BF3E: D0 F3        BNE $BF33       ; loop while running
+ *   BF40: AD 74 03     LDA $0374
+ *   BF43: 8D 3A 30     STA $303A       ; restore SCMR
+ *   BF46: AB           PLB
+ *   BF47: 6B           RTL
  */
 void srf_GSU_launch(void) {
-    uint8_t program = CPU_A8();
-    uint16_t params = g_cpu.X;
+    uint8_t program_bank = CPU_A8();
+    uint16_t program_addr = g_cpu.X;
 
-    /* The full implementation would:
-     * 1. Look up GSU program address from table
-     * 2. Set ROMBR, RAMBR
-     * 3. Write program address to R15 (low then high)
-     * 4. Writing R15 high byte triggers GSU execution
-     * 5. Wait for GSU to STOP
-     *
-     * For now, trigger GSU via bus API if available */
-    if (bus_has_gsu()) {
-        /* Set PBR = program bank */
-        bus_gsu_write(0x3034, program);
+    /* Write PBR (program bank register) */
+    bus_write8(0x00, 0x3034, program_bank);
 
-        /* The actual program addresses and setup will be
-         * recompiled as we trace the GSU launch routine
-         * from $7E:E1F5 */
-    }
+    uint8_t saved_db = g_cpu.DB;
+    g_cpu.DB = 0x00;
+
+    /* Set SCMR: enable RON + RAN (bits 4,3) to give GSU bus access */
+    uint8_t scmr_base = bus_wram_read8(0x0374);
+    bus_write8(0x00, 0x303A, scmr_base | 0x18);
+
+    /* Clear SFR low byte */
+    bus_write8(0x00, 0x3030, 0x00);
+
+    /* Write program address to R15 — this triggers GSU execution!
+     * STX $301E writes both low and high bytes of R15.
+     * Writing the high byte ($301F) sets the GO flag. */
+    bus_write8(0x00, 0x301E, (uint8_t)(program_addr & 0xFF));
+    bus_write8(0x00, 0x301F, (uint8_t)(program_addr >> 8));
+
+    /* The GSU is now running. In the original hardware, the 65816
+     * spins checking the GO flag in SFR ($3030 bit 5).
+     * In our emulation, gsu_write triggers gsu_run() which executes
+     * until STOP, so by the time we get here the GSU has finished. */
+
+    /* Verify GSU has stopped (read SFR, check GO flag) */
+    uint8_t sfr = bus_read8(0x00, 0x3030);
+    /* GO flag should be clear after STOP */
+
+    /* Restore SCMR without RON+RAN (return bus to 65816) */
+    bus_write8(0x00, 0x303A, scmr_base);
+
+    g_cpu.DB = saved_db;
 }

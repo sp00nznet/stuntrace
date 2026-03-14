@@ -37,73 +37,146 @@ We built a **complete GSU-2 emulator from scratch** and integrated it directly i
 
 ## Status
 
-| Milestone | Status |
-|-----------|--------|
-| Project scaffolding | Done |
-| snesrecomp integration | Done |
-| GSU-2 emulator (in snesrecomp) | Done |
-| GSU bus API (read/write/run) | Done |
-| Super FX cart type detection | Done |
-| 65816 disassembler tool | Done |
-| Reset vector ($00:FE88) | Done |
-| Full HW init ($03:89B4) | Done |
-| WRAM clear via DMA ($03:8CF6) | Done |
-| Full init chain ($03:8AA9) | Done |
-| NMI handler ($02:8000) | Done |
-| NMI WRAM trampoline setup | Done |
-| NMI DMA copy to WRAM ($7E:A2D9) | Done |
-| GSU register setup (CFGR/SCBR/CLSR) | Done |
-| Game data DMA to WRAM | Done |
-| GSU work RAM clear ($70:0000) | Done |
-| Main loop entry ($03:8C63) | Stubbed |
-| NMI state machine dispatch | Done |
-| NMI state 0 (title VBlank) | Done |
-| NMI state 1 (force blank / DMA) | Done |
-| NMI state 4 (gameplay VBlank) | Done |
-| NMI state 8 (gameplay force-blank) | Done |
-| SPC700 audio engine upload | Done |
-| IPL transfer protocol | Done |
-| Brightness control ($02:D65A) | Done |
-| Scanline wait ($02:D7AB) | Done |
-| Screen setup / scene transition ($02:CF45) | Done |
-| Display mode DMA dispatcher ($03:DD1B) | Partial |
-| GSU framebuffer → VRAM DMA (race mode) | Done |
-| GSU program launcher ($7E:E1F5) | Done |
-| PPU Mode 3 setup ($03:EB0E) | Done |
-| VRAM DMA engine ($03:EB83) | Done |
-| Title screen scene builder ($03:D9B9) | Done |
-| Title/attract wrapper ($03:D996) | Done |
-| Title screen tile/tilemap DMA | Done |
-| Title screen GSU program exec | Done |
-| Per-frame dispatch ($02:E0A9) | Done |
-| Attract mode frame body ($02:D7CD) | Done |
-| Camera/object setup ($02:DAD6) | Done |
-| Frame timing (60fps → seconds) | Done |
-| GSU 3D render pass (main + second) | Done |
-| Fade in/out management | Done |
-| Title screen state machine ($0B:AE0A) | Done |
-| Input check / Start detection ($0B:AE8F) | Done |
-| Camera angle calc ($03:D306) | Done |
-| Object/animation processing ($03:D388) | Done |
-| Object system main ($08:C5A5) | Done |
-| Display mode setup ($02:E289) | Done |
-| RGB→BGR color conversion | Done |
-| WRAM jump table patches ($09:ECE0) | Done |
-| P1/P2 input edge detection | Done |
-| GSU object visibility flags | Done |
-| Gameplay frame body ($0B:FB26) | Done |
-| 2-player split-screen viewports | Done |
-| Viewport config init ($08:B893) | Done |
-| Scene config loader ($03:8683) | Done |
-| Scene reset - 3 configs ($03:865E) | Done |
-| Full game restart ($03:8C86) | Done |
-| Main loop mode dispatch | Done |
-| Frame timeout logic | Done |
-| Race gameplay logic | Not started |
+### Infrastructure
 
-**Recompiled functions: 37** across 10 source files
+| Component | Status | Details |
+|-----------|--------|---------|
+| GSU-2 emulator | Done | ~1,200 lines of C, full instruction set, pixel cache, pushed to snesrecomp |
+| GSU bus API | Done | `bus_gsu_read/write/run`, `bus_has_gsu()` |
+| Super FX cart detection | Done | Cart type 4 (LoROM+SuperFX), auto-detect from ROM header $FFD6 |
+| 65816 disassembler | Done | M/X flag tracking, LoROM mapping, branch targets |
+| snesrecomp integration | Done | LakeSnes backend with GSU, SDL2 platform layer |
 
-**Current state:** 37 functions across 10 source files. Both attract and gameplay frame loops are recompiled. The main loop at $03:8C63 dispatches between attract ($02:D7CD) and gameplay ($0B:FB26) based on $0D62. The gameplay body handles 2-player split-screen with dual GSU render passes — P1 at $BBC7, P2 offset by $0140 pixels. Scene management loads configs from ROM tables at $03:8004+ and resets GSU state. Full game restart clears all WRAM, re-uploads audio, and re-enters init. The frame timeout at 30 frames clears $0713 to advance states. Next: race mode physics, track loading, and vehicle control.
+### Boot & Initialization
+
+| Function | Address | Status |
+|----------|---------|--------|
+| Reset vector | $00:FE88 | Done |
+| Full HW init (PPU/DMA/CPU regs) | $03:89B4 | Done |
+| WRAM DMA clear | $03:8CF6 | Done |
+| Full init chain | $03:8AA9 | Done |
+| NMI handler code DMA to WRAM | $02:8000 → $7E:A2D9 | Done |
+| NMI WRAM trampoline | $00:0108 | Done |
+| GSU register setup | CFGR/SCBR/CLSR | Done |
+| GSU work RAM clear | $70:0000-$27FF | Done |
+| SPC700 audio engine upload | $04:D44C | Done |
+| IPL transfer protocol | $04:D720 | Done |
+| WRAM jump table patches | $09:ECE0 | Done |
+
+### NMI / VBlank
+
+| Function | Address | Status |
+|----------|---------|--------|
+| NMI handler | $02:8000 | Done |
+| NMI state machine dispatch | $7E:A305 | Done |
+| State 0: title VBlank | — | Done |
+| State 1: force blank / DMA | — | Done |
+| State 4: gameplay VBlank | — | Done |
+| State 8: gameplay force-blank | — | Done |
+
+### Display & Rendering
+
+| Function | Address | Status |
+|----------|---------|--------|
+| Brightness control | $02:D65A | Done |
+| Scanline wait | $02:D7AB | Done |
+| Screen setup / scene transition | $02:CF45 | Done |
+| Display mode DMA dispatcher | $03:DD1B | Partial |
+| GSU framebuffer → VRAM DMA | (race mode) | Done |
+| GSU program launcher | $7E:E1F5 | Done |
+| PPU Mode 3 setup | $03:EB0E | Done |
+| VRAM DMA engine (table-driven) | $03:EB83 | Done |
+| Title screen scene builder | $03:D9B9 | Done |
+| Title/attract setup wrapper | $03:D996 | Done |
+| Display mode setup (RGB→BGR) | $02:E289 | Done |
+| Viewport config init | $08:B893 | Done |
+
+### Game Logic
+
+| Function | Address | Status |
+|----------|---------|--------|
+| Main loop mode dispatch | $03:8C63 | Done |
+| Per-frame dispatch (fade) | $02:E0A9 | Done |
+| Attract mode frame body | $02:D7CD | Done |
+| Gameplay frame body (2P) | $0B:FB26 | Done |
+| Title screen state machine | $0B:AE0A | Done |
+| Input check / Start detection | $0B:AE8F | Done |
+| Camera angle calc (3D→screen) | $03:D306 | Done |
+| Object/animation processing | $03:D388 | Done |
+| Object system main (P1/P2) | $08:C5A5 | Done |
+| Scene config loader | $03:8683 | Done |
+| Scene reset (3 configs) | $03:865E | Done |
+| Full game restart | $03:8C86 | Done |
+| Frame timeout logic | — | Done |
+
+### Not Yet Started
+
+| Component | Notes |
+|-----------|-------|
+| Race mode physics | Vehicle dynamics, collision detection |
+| Track data loading | Course geometry, checkpoints |
+| Vehicle control input | Steering, acceleration, braking |
+| Menu system | Character select, track select, options |
+| GSU 3D program recompilation | The polygon renderer programs themselves |
+| Particle effects | Exhaust, sparks, dust |
+| HUD / UI rendering | Speed, lap counter, timer |
+| Save data management | SRAM read/write for records |
+
+---
+
+**37 recompiled functions** across **10 source files** — clean build on MSVC 2022.
+
+### Recompiled Source Files
+
+| File | Functions | Purpose |
+|------|-----------|---------|
+| `srf_boot.c` | 2 | Reset vector ($FE88), NMI handler ($02:8000) |
+| `srf_init.c` | 6 | Full HW init, WRAM clear, GSU setup, main loop, func registration |
+| `srf_nmi.c` | 5 | NMI state machine — 4 VBlank handlers + dispatch |
+| `srf_audio.c` | 2 | SPC700 audio engine upload via IPL boot protocol |
+| `srf_display.c` | 5 | Brightness, screen setup, display DMA, GSU program launcher |
+| `srf_title.c` | 4 | PPU Mode 3 config, VRAM DMA engine, title scene builder |
+| `srf_attract.c` | 2 | Per-frame fade dispatch, attract mode frame body |
+| `srf_input.c` | 4 | Title state machine, input detection, camera math, object animation |
+| `srf_objects.c` | 3 | Object system main update, display mode setup, WRAM patches |
+| `srf_gameplay.c` | 5 | Gameplay frame body (2P), scene management, viewports, restart |
+
+### Rendering Pipeline
+
+```
+ROM Data ──► GSU Decompress ──► Bank $70 Work RAM ──► DMA ──► VRAM ──► PPU ──► Screen
+                  │                     │
+                  │              ┌──────┴──────┐
+                  │              │  65816 NMI   │
+                  │              │  VBlank DMA  │
+                  │              └──────────────┘
+                  │
+           ┌──────┴──────┐
+           │  GSU-2 RISC │
+           │  21 MHz     │
+           │  Programs:  │
+           │  $BBC7 (P1) │
+           │  $D307 (P2) │
+           └─────────────┘
+```
+
+### Key WRAM Addresses
+
+| Address | Purpose |
+|---------|---------|
+| $0D3F | NMI state machine index |
+| $0D2B | Display mode (0=title, 3=race) |
+| $0D62 | Game mode (0=attract, non-zero=gameplay) |
+| $0374 | SCMR base value (OR'd with $18 during GSU exec) |
+| $0306 | Frame counter (per-frame) |
+| $05E9 | Frame counter (master) |
+| $0346 | P1 object state index |
+| $034A | P2 object state index |
+| $0309 | P1 current button state |
+| $030D | P2 current button state |
+| $0D61 | Screen brightness |
+
+---
 
 ## Building
 
@@ -140,6 +213,9 @@ You must supply your own legally obtained copy of the US release:
 | Region | USA (NTSC) |
 | Format | LoROM + Super FX |
 | Size | 1 MB (8 Mbit) |
+| MD5 | `128b316a74caf17fdc216b3ab46d4a9a` |
+| Reset Vector | $FE88 |
+| NMI Vector | $0108 → $7E:A2D9 |
 | File | `Stunt Race FX (USA).sfc` |
 
 This project does not include any copyrighted ROM data.
@@ -149,21 +225,31 @@ This project does not include any copyrighted ROM data.
 ```
 stuntrace/
 ├── include/srf/           # Headers
-│   ├── cpu_ops.h          #   65816 instruction helpers
-│   └── functions.h        #   Recompiled function declarations
+│   ├── cpu_ops.h          #   65816 instruction helpers (REP/SEP/XCE/stack/etc)
+│   └── functions.h        #   All 37 recompiled function declarations
 ├── src/
-│   ├── recomp/            # Recompiled game code
+│   ├── recomp/            # Recompiled game code (10 files)
 │   │   ├── srf_boot.c     #   Reset vector, NMI handler
-│   │   └── srf_init.c     #   Hardware init, main loop, func registration
+│   │   ├── srf_init.c     #   HW init, WRAM clear, GSU setup, main loop
+│   │   ├── srf_nmi.c      #   NMI VBlank state machine (4 states)
+│   │   ├── srf_audio.c    #   SPC700 audio upload via IPL protocol
+│   │   ├── srf_display.c  #   Screen setup, brightness, GSU launcher
+│   │   ├── srf_title.c    #   Title screen PPU/VRAM/tile setup
+│   │   ├── srf_attract.c  #   Attract mode per-frame rendering
+│   │   ├── srf_input.c    #   Input handling, camera math, objects
+│   │   ├── srf_objects.c  #   Object system, display mode, WRAM patches
+│   │   └── srf_gameplay.c #   Gameplay frame body, scene mgmt, restart
 │   └── main/
 │       └── main.c         #   Launcher / frame loop
 ├── ext/snesrecomp/        # SNES hardware library (submodule)
 │   └── ext/LakeSnes/snes/
-│       ├── gsu.h          #   ★ GSU-2 coprocessor header (new!)
-│       └── gsu.c          #   ★ GSU-2 coprocessor emulation (new!)
-├── tools/                 # Disassembly & trace tooling
+│       ├── gsu.h          #   GSU-2 coprocessor header
+│       └── gsu.c          #   GSU-2 coprocessor emulation (~1,200 lines)
+├── tools/
+│   └── disasm/
+│       └── disasm.py      #   65816 disassembler (LoROM, M/X tracking)
 ├── CMakeLists.txt
-├── CLAUDE.md              # Developer notes
+├── CLAUDE.md              # Developer notes & ROM details
 └── README.md              # You are here
 ```
 
@@ -172,10 +258,10 @@ stuntrace/
 ```
 ┌─────────────────────┐     ┌──────────────────────┐
 │   Recompiled C      │     │     snesrecomp        │
-│   (srf_*.c files)   │────▶│   (LakeSnes backend)  │
+│   (10 srf_*.c files)│────▶│   (LakeSnes backend)  │
 │                     │     │                      │
-│  "I am the CPU"     │     │  PPU · APU · DMA     │
-│  bus_read8/write8   │     │  Memory bus · Cart    │
+│  "We are the CPU"   │     │  PPU · APU · DMA     │
+│  bus_read8/write8   │     │  GSU-2 · Cart · WRAM │
 └─────────────────────┘     └──────────┬───────────┘
                                        │
                                        ▼
@@ -186,7 +272,7 @@ stuntrace/
                               └────────────────┘
 ```
 
-Each recompiled function follows the naming convention `srf_BBAAAA` where `BB` is the SNES bank and `AAAA` is the address. So `srf_008000` = bank $00, address $8000 = the reset vector.
+Each recompiled function follows the naming convention `srf_BBAAAA` where `BB` is the SNES bank and `AAAA` is the address. The GSU launch protocol writes PBR, sets SCMR with RON+RAN, writes R15 to trigger execution, waits for STOP, then restores bus ownership.
 
 ## Related Projects
 
@@ -196,7 +282,7 @@ This is part of the [sp00nznet](https://github.com/sp00nznet) recompilation univ
 |---------|----------|------|
 | **stuntrace** | SNES + Super FX | Stunt Race FX (1994) |
 | [mk](https://github.com/sp00nznet/mk) | SNES | Super Mario Kart (1992) |
-| [snesrecomp](https://github.com/sp00nznet/snesrecomp) | SNES | Hardware library |
+| [snesrecomp](https://github.com/sp00nznet/snesrecomp) | SNES | Hardware library (now with GSU-2!) |
 | [LinksAwakening](https://github.com/sp00nznet/LinksAwakening) | Game Boy Color | Link's Awakening DX |
 | [diddykongracing](https://github.com/sp00nznet/diddykongracing) | N64 | Diddy Kong Racing |
 | [burnout3](https://github.com/sp00nznet/burnout3) | Xbox | Burnout 3: Takedown |

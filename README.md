@@ -69,14 +69,18 @@ We built a **complete GSU-2 emulator from scratch** and integrated it directly i
 | Display mode DMA dispatcher ($03:DD1B) | Partial |
 | GSU framebuffer → VRAM DMA (race mode) | Done |
 | GSU program launcher ($7E:E1F5) | Done |
-| Title screen tile loading | Not started |
-| Super FX 3D rendering pipeline | Not started |
+| PPU Mode 3 setup ($03:EB0E) | Done |
+| VRAM DMA engine ($03:EB83) | Done |
+| Title screen scene builder ($03:D9B9) | Done |
+| Title/attract wrapper ($03:D996) | Done |
+| Title screen tile/tilemap DMA | Done |
+| Title screen GSU program exec | Done |
 | Attract mode state machine | Not started |
 | Race gameplay | Not started |
 
-**Recompiled functions: 19** across 5 source files
+**Recompiled functions: 23** across 6 source files
 
-**Current state:** The rendering pipeline is taking shape. We've traced and recompiled the full screen setup routine ($02:CF45) which handles scene transitions — it disables display, configures brightness HDMA tables, initializes GSU control structures in bank $70, dispatches display mode configuration via a jump table, and launches GSU programs for 3D rendering. The race mode DMA path that transfers the Super FX framebuffer from GSU RAM ($70:3080) to VRAM ($63F0) is working. The display config table at $03:F4A5 indexes 3-byte entries (bank:addr) for per-mode PPU setup. Next: trace the GSU launch routine at $7E:E1F5 and the title screen tile loading.
+**Current state:** The title screen rendering pipeline is recompiled. The PPU is configured for BG Mode 3 (256-color BG1 + 4-color BG2). The scene builder at $03:D9B9 runs multiple GSU programs to decompress tile graphics, tilemaps, and palettes from ROM into GSU work RAM at bank $70, then DMA transfers them to VRAM using the table-driven DMA engine at $03:EB83. The GSU launch protocol at $7E:E1F5 handles the full 65816↔GSU handshake: write PBR/SCMR, trigger via R15, spin on GO flag, restore bus ownership. BG1 tilemap at VRAM $3D00, BG2 at $2D00, tiles at $0000/$6000. Next: attract mode state machine and per-frame game logic.
 
 ## Building
 

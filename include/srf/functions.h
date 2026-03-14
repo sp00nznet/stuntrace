@@ -43,7 +43,13 @@ void srf_02CF45(void);  /* Full screen setup for scene transition */
 /* === Bank $03 — Display Config === */
 void srf_03DD1B(void);  /* Display mode DMA dispatcher */
 
+/* === Bank $03 — Title Screen === */
+void srf_03EB0E(void);  /* PPU mode setup (Mode 3 for title screen) */
+void srf_03EB83(void);  /* VRAM DMA engine (table-driven from GSU RAM) */
+void srf_03D996(void);  /* Title/attract setup (outer wrapper) */
+void srf_03D9B9(void);  /* Title screen scene builder */
+
 /* === GSU === */
-void srf_GSU_launch(void);  /* GSU program launcher (stub for $7E:E1F5) */
+void srf_GSU_launch(void);  /* GSU program launcher ($7E:E1F5) */
 
 #endif /* SRF_FUNCTIONS_H */

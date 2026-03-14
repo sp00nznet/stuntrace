@@ -33,6 +33,10 @@ void srf_register_all(void) {
     func_table_register(0x02D7AB, srf_02D7AB);  /* scanline wait */
     func_table_register(0x02CF45, srf_02CF45);  /* screen setup */
     func_table_register(0x03DD1B, srf_03DD1B);  /* display mode dispatch */
+    func_table_register(0x03EB0E, srf_03EB0E);  /* PPU mode setup */
+    func_table_register(0x03EB83, srf_03EB83);  /* VRAM DMA engine */
+    func_table_register(0x03D996, srf_03D996);  /* title setup wrapper */
+    func_table_register(0x03D9B9, srf_03D9B9);  /* title scene builder */
 }
 
 /*

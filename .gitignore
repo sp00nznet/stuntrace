@@ -1,0 +1,14 @@
+build/
+*.sfc
+*.smc
+*.srm
+*.zip
+*.exe
+*.obj
+*.o
+*.lib
+*.a
+.vs/
+out/
+CMakeSettings.json
+*.user

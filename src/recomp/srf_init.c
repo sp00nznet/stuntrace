@@ -43,6 +43,9 @@ void srf_register_all(void) {
     func_table_register(0x0BAE8F, srf_0BAE8F);  /* input check */
     func_table_register(0x03D306, srf_03D306);  /* camera angle calc */
     func_table_register(0x03D388, srf_03D388);  /* object processing */
+    func_table_register(0x08C5A5, srf_08C5A5);  /* object system main */
+    func_table_register(0x09ECE0, srf_09ECE0);  /* WRAM patches */
+    func_table_register(0x02E289, srf_02E289);  /* display mode setup */
 }
 
 /*

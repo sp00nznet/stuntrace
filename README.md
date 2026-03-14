@@ -85,11 +85,17 @@ We built a **complete GSU-2 emulator from scratch** and integrated it directly i
 | Input check / Start detection ($0B:AE8F) | Done |
 | Camera angle calc ($03:D306) | Done |
 | Object/animation processing ($03:D388) | Done |
+| Object system main ($08:C5A5) | Done |
+| Display mode setup ($02:E289) | Done |
+| RGB→BGR color conversion | Done |
+| WRAM jump table patches ($09:ECE0) | Done |
+| P1/P2 input edge detection | Done |
+| GSU object visibility flags | Done |
 | Race gameplay | Not started |
 
-**Recompiled functions: 29** across 8 source files
+**Recompiled functions: 32** across 9 source files
 
-**Current state:** The full game loop from power-on through the title screen attract mode is recompiled. The title screen state machine ($0B:AE0A) runs the per-frame render loop while polling for Start button input, with the camera angle calculation converting 3D rotation values to screen coordinates via arithmetic shift and clamping. The object/animation system walks a linked list of active objects at $7E:2000+ with timer-based state transitions. The rendering pipeline executes GSU programs to decompress tiles and render 3D polygons, then DMAs results from bank $70 to VRAM during VBlank. When Start is pressed, the state machine disables display and transitions to menus.
+**Current state:** 32 functions recompiled across 9 source files. The complete game loop from power-on through attract mode is functional: boot → HW init → audio upload → title screen setup → per-frame rendering with GSU 3D passes → input polling → state transitions. The object system processes both P1 and P2 game objects with input edge detection and GSU visibility flag management. Display mode setup converts RGB to SNES 15-bit BGR and configures NMI/IRQ. WRAM patches are installed for jump table dispatch. The next frontier is the menu system (character/track select) and the race mode game logic.
 
 ## Building
 

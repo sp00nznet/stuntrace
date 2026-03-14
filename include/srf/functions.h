@@ -61,6 +61,15 @@ void srf_0BAE8F(void);  /* Check for input (Start press) */
 void srf_03D306(void);  /* Camera angle calculation (3D → screen) */
 void srf_03D388(void);  /* Object/animation linked list processing */
 
+/* === Bank $08 — Object System === */
+void srf_08C5A5(void);  /* Object system main update (P1/P2 processing) */
+
+/* === Bank $09 — WRAM Patches === */
+void srf_09ECE0(void);  /* Copy jump table patches to WRAM */
+
+/* === Bank $02 — Display Mode === */
+void srf_02E289(void);  /* Display mode setup (RGB→BGR, NMI config) */
+
 /* === GSU === */
 void srf_GSU_launch(void);  /* GSU program launcher ($7E:E1F5) */
 

@@ -29,6 +29,10 @@ void srf_register_all(void) {
     func_table_register(0x038C63, srf_038C63);  /* main loop */
     func_table_register(0x04D44C, srf_04D44C);  /* SPC700 audio upload */
     func_table_register(0x04D720, srf_04D720);  /* IPL transfer */
+    func_table_register(0x02D65A, srf_02D65A);  /* brightness control */
+    func_table_register(0x02D7AB, srf_02D7AB);  /* scanline wait */
+    func_table_register(0x02CF45, srf_02CF45);  /* screen setup */
+    func_table_register(0x03DD1B, srf_03DD1B);  /* display mode dispatch */
 }
 
 /*

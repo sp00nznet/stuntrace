@@ -16,6 +16,7 @@ add_library(srf_game STATIC
     src/recomp/srf_init.c
     src/recomp/srf_nmi.c
     src/recomp/srf_audio.c
+    src/recomp/srf_display.c
 )
 
 target_include_directories(srf_game PUBLIC ${CMAKE_SOURCE_DIR}/include)

@@ -35,4 +35,15 @@ void srf_038C63(void);  /* Main game loop entry */
 void srf_04D44C(void);  /* SPC700 audio engine upload */
 void srf_04D720(void);  /* IPL transfer routine */
 
+/* === Bank $02 — Display / Screen === */
+void srf_02D65A(void);  /* Store brightness to HDMA table */
+void srf_02D7AB(void);  /* Wait for scanline */
+void srf_02CF45(void);  /* Full screen setup for scene transition */
+
+/* === Bank $03 — Display Config === */
+void srf_03DD1B(void);  /* Display mode DMA dispatcher */
+
+/* === GSU === */
+void srf_GSU_launch(void);  /* GSU program launcher (stub for $7E:E1F5) */
+
 #endif /* SRF_FUNCTIONS_H */

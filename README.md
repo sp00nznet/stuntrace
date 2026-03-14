@@ -63,14 +63,20 @@ We built a **complete GSU-2 emulator from scratch** and integrated it directly i
 | NMI state 8 (gameplay force-blank) | Done |
 | SPC700 audio engine upload | Done |
 | IPL transfer protocol | Done |
-| Title screen rendering | Not started |
-| Super FX 3D rendering | Not started |
-| Attract mode / menus | Not started |
+| Brightness control ($02:D65A) | Done |
+| Scanline wait ($02:D7AB) | Done |
+| Screen setup / scene transition ($02:CF45) | Done |
+| Display mode DMA dispatcher ($03:DD1B) | Partial |
+| GSU framebuffer → VRAM DMA (race mode) | Done |
+| GSU program launcher | Stubbed |
+| Title screen tile loading | Not started |
+| Super FX 3D rendering pipeline | Not started |
+| Attract mode state machine | Not started |
 | Race gameplay | Not started |
 
-**Recompiled functions: 14** across 4 source files
+**Recompiled functions: 19** across 5 source files
 
-**Current state:** The full boot chain runs from actual ROM disassembly. The NMI state machine dispatches 4 different VBlank handlers for title/gameplay modes. The SPC700 audio engine is uploaded via the IPL boot protocol. All hardware registers are initialized, 200+ KB of WRAM is cleared, the NMI trampoline is installed, and the Super FX is configured. The game reaches its main frame loop with both CPUs wired up and audio hardware initialized. Next target: title screen tile/palette loading and attract mode state machine.
+**Current state:** The rendering pipeline is taking shape. We've traced and recompiled the full screen setup routine ($02:CF45) which handles scene transitions — it disables display, configures brightness HDMA tables, initializes GSU control structures in bank $70, dispatches display mode configuration via a jump table, and launches GSU programs for 3D rendering. The race mode DMA path that transfers the Super FX framebuffer from GSU RAM ($70:3080) to VRAM ($63F0) is working. The display config table at $03:F4A5 indexes 3-byte entries (bank:addr) for per-mode PPU setup. Next: trace the GSU launch routine at $7E:E1F5 and the title screen tile loading.
 
 ## Building
 

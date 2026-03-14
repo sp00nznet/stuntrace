@@ -19,6 +19,7 @@ add_library(srf_game STATIC
     src/recomp/srf_display.c
     src/recomp/srf_title.c
     src/recomp/srf_attract.c
+    src/recomp/srf_input.c
 )
 
 target_include_directories(srf_game PUBLIC ${CMAKE_SOURCE_DIR}/include)

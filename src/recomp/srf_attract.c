@@ -157,6 +157,11 @@ void srf_02D7CD(void) {
     g_cpu.X = 0xBBC7;
     srf_GSU_launch();
 
+    /* Object/animation processing */
+    op_sep(0x20);
+    op_rep(0x10);
+    srf_03D388();
+
     /* Post-GSU processing */
     op_sep(0x20);
     op_rep(0x10);
@@ -167,6 +172,9 @@ void srf_02D7CD(void) {
     /* Clear animation counter */
     op_rep(0x20);
     bus_wram_write16(0x1AE8, 0x0000);
+
+    /* Camera angle calculation */
+    srf_03D306();
 
     /* Second GSU pass (if $70:2732 is non-zero) */
     op_rep(0x20);

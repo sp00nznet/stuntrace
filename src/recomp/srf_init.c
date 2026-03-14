@@ -39,6 +39,10 @@ void srf_register_all(void) {
     func_table_register(0x03D9B9, srf_03D9B9);  /* title scene builder */
     func_table_register(0x02E0A9, srf_02E0A9);  /* per-frame dispatch */
     func_table_register(0x02D7CD, srf_02D7CD);  /* attract frame body */
+    func_table_register(0x0BAE0A, srf_0BAE0A);  /* title state machine */
+    func_table_register(0x0BAE8F, srf_0BAE8F);  /* input check */
+    func_table_register(0x03D306, srf_03D306);  /* camera angle calc */
+    func_table_register(0x03D388, srf_03D388);  /* object processing */
 }
 
 /*

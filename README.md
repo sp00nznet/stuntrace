@@ -81,11 +81,15 @@ We built a **complete GSU-2 emulator from scratch** and integrated it directly i
 | Frame timing (60fps → seconds) | Done |
 | GSU 3D render pass (main + second) | Done |
 | Fade in/out management | Done |
+| Title screen state machine ($0B:AE0A) | Done |
+| Input check / Start detection ($0B:AE8F) | Done |
+| Camera angle calc ($03:D306) | Done |
+| Object/animation processing ($03:D388) | Done |
 | Race gameplay | Not started |
 
-**Recompiled functions: 25** across 7 source files
+**Recompiled functions: 29** across 8 source files
 
-**Current state:** The attract mode frame loop is running. Every frame: the per-frame dispatch manages fade timing ($02:E0A9), then the attract body ($02:D7CD) reads the object/camera state table from WRAM $7E:204F, sets up 3D camera position, launches the main GSU 3D render pass (program at $BBC7), processes palettes and display updates, optionally runs a second GSU pass ($D307), and accumulates frame timing for the 60fps→seconds counter. The GSU renders to bank $70 work RAM, and the NMI VBlank handler DMAs the result to VRAM. The full pipeline from boot to per-frame rendering is now traced and recompiled.
+**Current state:** The full game loop from power-on through the title screen attract mode is recompiled. The title screen state machine ($0B:AE0A) runs the per-frame render loop while polling for Start button input, with the camera angle calculation converting 3D rotation values to screen coordinates via arithmetic shift and clamping. The object/animation system walks a linked list of active objects at $7E:2000+ with timer-based state transitions. The rendering pipeline executes GSU programs to decompress tiles and render 3D polygons, then DMAs results from bank $70 to VRAM during VBlank. When Start is pressed, the state machine disables display and transitions to menus.
 
 ## Building
 

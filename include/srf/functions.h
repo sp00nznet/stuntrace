@@ -53,6 +53,14 @@ void srf_03D9B9(void);  /* Title screen scene builder */
 void srf_02E0A9(void);  /* Per-frame dispatch (fade management) */
 void srf_02D7CD(void);  /* Attract mode frame body (main render loop) */
 
+/* === Bank $0B — Title State Machine / Input === */
+void srf_0BAE0A(void);  /* Title screen state machine */
+void srf_0BAE8F(void);  /* Check for input (Start press) */
+
+/* === Bank $03 — Camera / Objects === */
+void srf_03D306(void);  /* Camera angle calculation (3D → screen) */
+void srf_03D388(void);  /* Object/animation linked list processing */
+
 /* === GSU === */
 void srf_GSU_launch(void);  /* GSU program launcher ($7E:E1F5) */
 

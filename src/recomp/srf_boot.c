@@ -15,6 +15,7 @@
  * DMA-copied from ROM bank $02:$8000 (0x54A6 bytes).
  */
 
+#include <stdio.h>
 #include <string.h>
 #include <snesrecomp/cpu.h>
 #include <snesrecomp/bus.h>
@@ -68,6 +69,8 @@ void srf_00FE88(void) {
  *   02:8022  68        PLA
  *   02:8023  6B        RTL
  */
+static int s_nmi_count = 0;
+
 void srf_028000(void) {
     op_rep(0x30);
     op_pha16();
@@ -76,15 +79,17 @@ void srf_028000(void) {
     uint16_t nmi_status = bus_read16(0x00, 0x4210);
     CPU_SET_A16(nmi_status);
 
-    if (!(g_cpu.C & 0x8000)) {
-        /* false NMI — just read GSU SFR and return */
-        uint16_t sfr = bus_read16(0x00, 0x3030);
-        CPU_SET_A16(sfr);
-        op_pla16();
-        return;
+    if (s_nmi_count < 5) {
+        uint8_t reg4210 = bus_read8(0x00, 0x4210);
+        uint8_t reg4211 = bus_read8(0x00, 0x4211);
+        printf("  NMI #%d: $4210=$%02X $4211=$%02X status16=$%04X\n",
+               s_nmi_count, reg4210, reg4211, nmi_status);
     }
+    s_nmi_count++;
 
-    /* real NMI */
+    /* Always run NMI work — the launcher drives frames externally,
+     * so we can't rely on hardware VBlank timing flags. */
+
     /* PHB, SEI, PHX, PHY */
     uint8_t saved_db = g_cpu.DB;
     OP_SEI();

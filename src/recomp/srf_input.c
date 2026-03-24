@@ -183,9 +183,23 @@ void srf_03D388(void) {
         if (timer == 0) {
             /* Inactive — follow link */
         } else if ((int8_t)timer < 0) {
-            /* Negative — initialize to 3 */
+            /* Negative — initialize to 3, call init handler ($03:CAEB)
+             * Reads callback from $7E:201D+X (addr) / $201F+X (bank).
+             * If addr is non-zero and $2022+X is zero, dispatch. */
             bus_write8(0x7E, 0x2036 + obj_idx, 0x03);
-            /* Would call $03:CAEB for init handler */
+            op_rep(0x20);
+            uint16_t init_addr = bus_read16(0x7E, 0x201D + obj_idx);
+            if (init_addr != 0) {
+                uint16_t obj_id = bus_read16(0x7E, 0x2022 + obj_idx);
+                if (obj_id == 0) {
+                    uint8_t init_bank = bus_read8(0x7E, 0x201F + obj_idx);
+                    uint32_t callback = ((uint32_t)init_bank << 16) | init_addr;
+                    bus_wram_write16(0x034C, obj_idx);
+                    g_cpu.X = obj_idx;
+                    func_table_call(callback);
+                }
+            }
+            op_sep(0x20);
         } else {
             /* Positive — decrement timer */
             timer--;
@@ -196,7 +210,21 @@ void srf_03D388(void) {
                 bus_write8(0x7E, 0x2036 + obj_idx, 0x00);
             } else {
                 bus_write8(0x7E, 0x2036 + obj_idx, timer);
-                /* Would call $03:CAB8 for animation update */
+                /* Call animation update handler ($03:CAB8)
+                 * Reads callback from $7E:201A+X (addr) / $201C+X (bank).
+                 * If addr is non-zero, dispatch. */
+                op_rep(0x20);
+                uint16_t upd_addr = bus_read16(0x7E, 0x201A + obj_idx);
+                if (upd_addr != 0) {
+                    uint8_t upd_bank = bus_read8(0x7E, 0x201C + obj_idx);
+                    uint32_t callback = ((uint32_t)upd_bank << 16) | upd_addr;
+                    bus_wram_write16(0x034C, obj_idx);
+                    bus_wram_write16(0x0354, upd_addr);
+                    bus_wram_write8(0x0356, upd_bank);
+                    g_cpu.X = obj_idx;
+                    func_table_call(callback);
+                }
+                op_sep(0x20);
             }
         }
 

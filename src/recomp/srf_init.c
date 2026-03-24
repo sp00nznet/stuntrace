@@ -10,6 +10,7 @@
  *                                  → main loop at $03:8C63
  */
 
+#include <stdio.h>
 #include <string.h>
 #include <snesrecomp/cpu.h>
 #include <snesrecomp/bus.h>
@@ -28,7 +29,18 @@ void srf_register_all(void) {
     func_table_register(0x038CF6, srf_038CF6);  /* WRAM DMA clear */
     func_table_register(0x038C63, srf_038C63);  /* main loop */
     func_table_register(0x04D44C, srf_04D44C);  /* SPC700 audio upload */
+    func_table_register(0x04D649, srf_04D649);  /* audio command queue */
+    func_table_register(0x04D6E1, srf_04D6E1);  /* audio state clear */
+    func_table_register(0x04D0DB, srf_04D0DB);  /* audio/music reload */
     func_table_register(0x04D720, srf_04D720);  /* IPL transfer */
+    func_table_register(0x03B011, srf_03B011);  /* rotation matrix */
+    func_table_register(0x02DF79, srf_02DF79);  /* PRNG */
+    func_table_register(0x02DAD6, srf_02DAD6);  /* camera setup */
+    func_table_register(0x02D53D, srf_02D53D);  /* palette copy */
+    func_table_register(0x02D55F, srf_02D55F);  /* palette fade */
+    func_table_register(0x02DB59, srf_02DB59);  /* GSU palette launch */
+    func_table_register(0x7EE258, srf_7EE258);  /* P2 GSU render */
+    func_table_register(0x7F112F, srf_7F112F);  /* gameplay audio sync */
     func_table_register(0x02D65A, srf_02D65A);  /* brightness control */
     func_table_register(0x02D7AB, srf_02D7AB);  /* scanline wait */
     func_table_register(0x02CF45, srf_02CF45);  /* screen setup */
@@ -41,13 +53,51 @@ void srf_register_all(void) {
     func_table_register(0x02D7CD, srf_02D7CD);  /* attract frame body */
     func_table_register(0x0BAE0A, srf_0BAE0A);  /* title state machine */
     func_table_register(0x0BAE8F, srf_0BAE8F);  /* input check */
+    func_table_register(0x03B48C, srf_03B48C);  /* object table setup */
+    func_table_register(0x03F02B, srf_03F02B);  /* palette checksum */
+    func_table_register(0x03D8B3, srf_03D8B3);  /* display-mode init */
+    func_table_register(0x03B3DA, srf_03B3DA);  /* scene state init */
+    func_table_register(0x03CB5C, srf_03CB5C);  /* object alloc */
+    func_table_register(0x03CB25, srf_03CB25);  /* object init */
+    func_table_register(0x03B8A1, srf_03B8A1);  /* object dealloc */
     func_table_register(0x03D306, srf_03D306);  /* camera angle calc */
     func_table_register(0x03D388, srf_03D388);  /* object processing */
+    func_table_register(0x08801C, srf_08801C);  /* object command dispatch */
+    func_table_register(0x0894A1, srf_0894A1);  /* vehicle race callback */
+    func_table_register(0x08951B, srf_08951B);  /* vehicle collision callback */
+    func_table_register(0x08D8C2, srf_08D8C2);  /* GSU camera sync */
+    func_table_register(0x08D86F, srf_08D86F);  /* object→GSU sync */
+    func_table_register(0x08CD25, srf_08CD25);  /* object callback chain */
+    func_table_register(0x08CC7C, srf_08CC7C);  /* vehicle creation */
+    func_table_register(0x0888C7, srf_0888C7);  /* vehicle model setup */
+    func_table_register(0x08CF41, srf_08CF41);  /* collision response */
+    func_table_register(0x08CF92, srf_08CF92);  /* collision check */
+    func_table_register(0x0883CC, srf_0883CC);  /* render list rehash */
+    func_table_register(0x08D070, srf_08D070);  /* object validity check */
+    func_table_register(0x08CE02, srf_08CE02);  /* collision state sync */
+    func_table_register(0x08CCA3, srf_08CCA3);  /* GSU flag setup */
+    func_table_register(0x08CCBE, srf_08CCBE);  /* GSU anim frame */
+    func_table_register(0x08CCD2, srf_08CCD2);  /* GSU position write */
+    func_table_register(0x08CCF1, srf_08CCF1);  /* GSU flag OR */
+    func_table_register(0x08B863, srf_08B863);  /* viewport render order */
+    func_table_register(0x08C60F, srf_08C60F);  /* object state update */
+    func_table_register(0x08B4C6, srf_08B4C6);  /* object render setup */
+    func_table_register(0x088364, srf_088364);  /* render list insert */
+    func_table_register(0x088392, srf_088392);  /* render list remove */
     func_table_register(0x08C5A5, srf_08C5A5);  /* object system main */
     func_table_register(0x09ECE0, srf_09ECE0);  /* WRAM patches */
     func_table_register(0x02E289, srf_02E289);  /* display mode setup */
     func_table_register(0x08B893, srf_08B893);  /* viewport config */
+    func_table_register(0x0BB479, srf_0BB479);  /* entity system init */
+    func_table_register(0x0BB4C3, srf_0BB4C3);  /* entity allocator */
+    func_table_register(0x0BB450, srf_0BB450);  /* entity callback dispatch */
+    func_table_register(0x0BB64A, srf_0BB64A);  /* sprite compositor */
+    func_table_register(0x0BE390, srf_0BE390);  /* VBlank wait */
+    func_table_register(0x0BFA24, srf_0BFA24);  /* gameplay scene setup */
     func_table_register(0x0BFB26, srf_0BFB26);  /* gameplay frame body */
+    func_table_register(0x03863D, srf_03863D);  /* scene change A */
+    func_table_register(0x038648, srf_038648);  /* scene change B */
+    func_table_register(0x038653, srf_038653);  /* scene change C */
     func_table_register(0x038683, srf_038683);  /* scene config loader */
     func_table_register(0x03865E, srf_03865E);  /* scene reset */
     func_table_register(0x038C86, srf_038C86);  /* full game restart */
@@ -203,7 +253,9 @@ void srf_038AA9(void) {
     g_cpu.DP = g_cpu.C;
 
     /* ── Call PPU/register init ──────────────────────── */
+    printf("Init: PPU/register init...\n");
     srf_0389B4();
+    printf("Init: PPU done.\n");
 
     /* CLI — enable interrupts */
     OP_CLI();
@@ -241,6 +293,8 @@ void srf_038AA9(void) {
     g_cpu.Y = 0xFFFF;
     srf_038CF6();  /* clear WRAM $7F:0000-$7F:FFFF */
 
+    printf("Init: WRAM clear done.\n");
+
     /* ── Clear GSU work RAM $70:0000-$70:27FF ────────── */
     /* MVN $70,$70 — block move */
     op_rep(0x30);
@@ -250,9 +304,13 @@ void srf_038AA9(void) {
         bus_write8(0x70, (uint16_t)i, 0x00);
     }
 
+    printf("Init: GSU RAM clear done.\n");
+
     /* ── Upload SPC700 audio engine ────────────────────── */
+    printf("Init: Uploading SPC700 audio engine...\n");
     /* JSL $04D44C */
     srf_04D44C();
+    printf("Init: SPC700 upload done.\n");
 
     /* ── Copy vector table stub to WRAM $00:0101 ─────── */
     /* Source: $03:8D16, 16 bytes → WRAM $0101 */
@@ -323,7 +381,129 @@ void srf_038AA9(void) {
     /* $3038 = SCBR = $0B (screen base at $0B * 1024 in GSU RAM) */
     bus_write8(0x00, 0x3038, 0x0B);
 
-    /* ── Continue to main game init and loop ─────────── */
+    /* ── Game scene initialization ($8B96-$8C62) ─────── */
+    printf("Init: HW setup complete, starting scene init...\n");
+
+    /* $0B:AE0A — Title screen state machine (initial call) */
+    srf_0BAE0A();
+
+    /* Set game state flags */
+    op_rep(0x30);
+    bus_wram_write16(0x1915, 0x0003);
+    bus_wram_write16(0x1917, 0x0000);
+
+    /* Reset stack (no-op in recomp, stack is managed by C) */
+    g_cpu.DB = 0x03;
+
+    op_sep(0x20);
+    bus_wram_write8(0x0E4E, 0x00);  /* audio unmute */
+    bus_wram_write8(0x117A, 0x02);  /* controller config */
+    bus_wram_write8(0x117B, 0x01);
+
+    /* $03:B3DA — Scene state initialization */
+    srf_03B3DA();
+
+    /* $03:D8B3 — Display-mode-specific initialization */
+    srf_03D8B3();
+
+    /* $08:B893 — Viewport config init */
+    srf_08B893();
+
+    /* Disable HDMA, force blank, disable interrupts */
+    g_cpu.DB = 0x03;
+    op_sep(0x20);
+    bus_write8(0x00, 0x420C, 0x00);
+    bus_write8(0x00, 0x2100, 0x80);
+    OP_SEI();
+
+    op_sep(0x20);
+    bus_wram_write8(0x0E4E, 0x00);
+
+    /* $02:E289 — Display mode setup (NMI state, brightness) */
+    srf_02E289();
+
+    /* Force blank, disable HDMA, disable interrupts */
+    op_sep(0x20);
+    bus_write8(0x00, 0x420C, 0x00);
+    bus_write8(0x00, 0x2100, 0x80);
+    OP_SEI();
+
+    /* $03:D996 — Title setup wrapper */
+    srf_03D996();
+
+    g_cpu.DB = 0x03;
+    op_sep(0x20);
+    bus_write8(0x00, 0x420C, 0x00);
+    bus_write8(0x00, 0x2100, 0x80);
+    OP_SEI();
+
+    /* $09:ECE0 — WRAM jump table patches */
+    srf_09ECE0();
+
+    /* CLSR high-speed, init flag */
+    op_sep(0x20);
+    op_rep(0x10);
+    bus_write8(0x00, 0x3039, 0x01);
+    bus_write8(0x7E, 0xFF65, 0x01);
+
+    OP_SEI();
+
+    printf("Init: Scene state done. $0D2B=%d $0D62=%d $0D3F=$%02X\n",
+           bus_wram_read8(0x0D2B), bus_wram_read8(0x0D62), bus_wram_read8(0x0D3F));
+
+    /* $02:CF45 — Full screen setup (calls display dispatcher) */
+    printf("Init: Running screen setup ($02:CF45)...\n");
+    srf_02CF45();
+
+    /* $03:EC24 — Look up scene's object command table
+     * Returns: A = bank, X = ROM offset for the command table */
+    op_rep(0x30);
+    {
+        uint8_t cfg_idx = bus_wram_read8(0x0E3D);
+        uint16_t tbl_offset = (uint16_t)cfg_idx * 3;
+        uint16_t cmd_addr = bus_read16(0x03, 0xF4A5 + tbl_offset) - 0x8000;
+        uint8_t cmd_bank = bus_read8(0x03, 0xF4A7 + tbl_offset);
+        g_cpu.X = cmd_addr;
+        CPU_SET_A8(cmd_bank);
+        printf("Init: Object command table at $%02X:%04X\n", cmd_bank, cmd_addr + 0x8000);
+    }
+
+    /* $08:801C — Object command dispatcher
+     * Reads commands from the ROM table and creates GSU 3D objects. */
+    printf("Init: Running object command dispatcher ($08:801C)...\n");
+    srf_08801C();
+    printf("Init: Object commands done.\n");
+
+    /* Clear GSU state flags */
+    op_sep(0x20);
+    bus_write8(0x70, 0x023A, 0x00);
+    bus_wram_write8(0x1A32, 0x00);
+    bus_wram_write8(0x05E9, 0x00);  /* clear master frame counter */
+    bus_wram_write8(0x0713, 0x01);  /* frame timeout flag */
+
+    printf("Init: Screen setup done. $0D3F=$%02X $0D61=$%02X $2100=$%02X\n",
+           bus_wram_read8(0x0D3F), bus_wram_read8(0x0D61),
+           bus_read8(0x00, 0x2100));
+
+    /* Launch GSU program $04:8800 (initial 3D scene setup) */
+    printf("Init: Launching GSU $04:8800...\n");
+    op_sep(0x20);
+    op_rep(0x10);
+    CPU_SET_A8(0x04);
+    g_cpu.X = 0x8800;
+    srf_GSU_launch();
+    printf("Init: GSU $04:8800 complete.\n");
+
+    /* Set processing flag, clear IRQ, enable interrupts */
+    op_sep(0x20);
+    bus_wram_write8(0x0357, 0x01);
+    bus_read8(0x00, 0x4211);
+    OP_CLI();
+
+    printf("Init complete. Entering main loop. $0D3F=$%02X $0D62=$%02X\n",
+           bus_wram_read8(0x0D3F), bus_wram_read8(0x0D62));
+
+    /* ── Enter main game loop ──────────────────────── */
     srf_038C63();
 }
 
@@ -360,6 +540,83 @@ void srf_038C63(void) {
         srf_0BFB26();
     } else {
         srf_02D7CD();
+
+        /* ── Start button detection during attract ──────────
+         * Check for Start press (bit 4 of $0311 = new button edges).
+         * When detected, transition from attract to gameplay. */
+        op_rep(0x20);
+        uint16_t new_buttons = bus_wram_read16(0x0311);
+        if (new_buttons & 0x1000) {  /* Start button */
+            /* Disable display for transition */
+            op_sep(0x20);
+            bus_write8(0x00, 0x2100, 0x80);
+            bus_write8(0x00, 0x4200, 0x00);
+            bus_write8(0x00, 0x420C, 0x00);
+
+            /* Set game mode to gameplay */
+            bus_wram_write8(0x0D62, 0x01);
+            bus_wram_write8(0x0D2B, 0x03);  /* race display mode */
+
+            /* Reinitialize for gameplay */
+            srf_03B3DA();
+            srf_03D8B3();
+            srf_02E289();
+            srf_02CF45();
+
+            op_sep(0x20);
+            bus_wram_write8(0x0357, 0x01);
+            bus_read8(0x00, 0x4211);
+            OP_CLI();
+        }
+
+        /* ── Attract mode auto-cycle ($0B:AEF2 logic) ─────
+         * In the original, $0B:AEF2 runs its own frame loop during
+         * init. In the recomp, we check the attract timer each frame.
+         * After 1024 frames (~17 sec), cycle to next demo scene.
+         * Uses $1913 as frame counter, $1915 as scene index (0-2). */
+        op_rep(0x20);
+        uint16_t attract_timer = bus_wram_read16(0x1913);
+        attract_timer++;
+        bus_wram_write16(0x1913, attract_timer);
+
+        if (attract_timer >= 0x0400) {
+            /* Timer expired — advance to next demo scene */
+            bus_wram_write16(0x1913, 0x0000);
+
+            op_sep(0x20);
+            bus_wram_write8(0x10DA, 0xFF);  /* flag for scene transition */
+
+            op_rep(0x20);
+            uint16_t scene_idx = bus_read16(0x00, 0x1915);
+            scene_idx = (scene_idx + 1) & 0x0003;
+            if (scene_idx == 0x0003) scene_idx = 0x0000;
+            bus_write16(0x00, 0x1915, scene_idx);
+
+            /* Call appropriate scene change function */
+            switch (scene_idx) {
+            case 0: srf_03863D(); break;
+            case 1: srf_038648(); break;
+            case 2: srf_038653(); break;
+            }
+
+            /* Reinitialize scene after change */
+            srf_03B3DA();
+            srf_03D8B3();
+            srf_02E289();
+            srf_02CF45();
+
+            /* Re-launch GSU for new scene */
+            op_sep(0x20);
+            op_rep(0x10);
+            CPU_SET_A8(0x04);
+            g_cpu.X = 0x8800;
+            srf_GSU_launch();
+
+            op_sep(0x20);
+            bus_wram_write8(0x0357, 0x01);
+            bus_read8(0x00, 0x4211);
+            OP_CLI();
+        }
     }
 
     /* Check frame counter threshold for timeout logic

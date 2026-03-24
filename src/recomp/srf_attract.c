@@ -122,23 +122,8 @@ void srf_02D7CD(void) {
     uint16_t obj_ptr = bus_read16(0x7E, 0x204F + obj_addr);
     g_cpu.X = obj_ptr;
 
-    /* $02:DAD6 — Set up camera/position data from object table */
-    /* Reads object fields at X+0..X+$12 and stores to
-     * DP variables and WRAM $0664-$0668 for camera setup */
-    op_rep(0x30);
-    uint16_t cam_x = bus_wram_read16(g_cpu.X + 8);
-    uint16_t cam_y = bus_wram_read16(g_cpu.X + 10);
-    uint16_t cam_z = bus_wram_read16(g_cpu.X + 12);
-    bus_wram_write16(0x00C5, cam_x);
-    bus_wram_write16(0x00C7, cam_y);
-    bus_wram_write16(0x00C9, cam_z);
-    bus_wram_write16(0x0664, bus_wram_read16(g_cpu.X + 14));
-    bus_wram_write16(0x0666, bus_wram_read16(g_cpu.X + 16));
-    bus_wram_write16(0x0668, bus_wram_read16(g_cpu.X + 18));
-
-    /* Write object data to GSU RAM for 3D processing */
-    uint16_t obj_id = bus_wram_read16(g_cpu.X + 2);
-    bus_write16(0x70, 0x247A, bus_read16(0x7E, 0x2022 + obj_id));
+    /* $02:DAD6 — Camera setup from object data */
+    srf_02DAD6();
 
     /* Clear render flag */
     op_sep(0x20);
@@ -161,6 +146,11 @@ void srf_02D7CD(void) {
     op_sep(0x20);
     op_rep(0x10);
     srf_03D388();
+
+    /* Palette/color updates */
+    srf_02DB59();   /* GSU palette program ($01:AEF8) */
+    srf_02D55F();   /* palette fade interpolation */
+    srf_02D53D();   /* palette copy from ROM table */
 
     /* Post-GSU processing */
     op_sep(0x20);

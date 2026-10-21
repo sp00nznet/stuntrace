@@ -33,6 +33,7 @@
 #include <string.h>
 
 #include <snesrecomp/snesrecomp.h>
+#include <SDL.h>   /* SDL2main needs main renamed to SDL_main */
 #include <snesrecomp/cpu.h>
 #include <snesrecomp/bus.h>
 #include <snesrecomp/func_table.h>
@@ -170,6 +171,7 @@ static int run_realframe(bool intercept) {
 }
 
 int main(int argc, char **argv) {
+    argc = snesrecomp_parse_args(argc, argv);   /* --headless, --record out.mp4 */
     printf("=== Stunt Race FX — Static Recompilation ===\n");
     printf("    snesrecomp + LakeSnes backend (GSU-2)\n\n");
 

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(stuntrace C)
+project(stuntrace C CXX)   # CXX: snesrecomp links Dear ImGui, so the exe needs the C++ runtime
 
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)

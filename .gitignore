@@ -12,3 +12,12 @@ build/
 out/
 CMakeSettings.json
 *.user
+*.mp4
+*.sav
+*.bmp
+*.log
+screenshot_*.png
+gen/
+scratch/
+build-farm/
+__pycache__/

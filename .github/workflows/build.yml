@@ -28,4 +28,4 @@ jobs:
       # The ROM cannot be distributed, and there is no conformance harness yet
       # (ROADMAP.md). CI proves the tree builds.
       - name: Conformance
-        run: echo "conformance: skipped (no harness yet, and it would need a user-supplied ROM)"
+        run: echo "Conformance skipped - no harness yet (ROADMAP.md), and it would need a user-supplied ROM."

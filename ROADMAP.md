@@ -2,23 +2,21 @@
 
 ## Next
 
-- **Get past the Nintendo logo.** A headless run of the current build draws the
-  logo (frames ~74-192) and then a black screen through frame 6000. It is the
-  same before and after the snesrecomp bump (identical WRAM checksum at frame
-  1500), so it predates it. Find out whether the GSU is being stepped in the
-  real-frame loop and whether the screen is really blank or just not presented.
-- **Grow the verified intercept set** (`k_intercepts` in `src/main/main.c`):
-  profile, bisect against the WRAM checksum, promote. Only `$0B:B4C3` is verified so far.
-- **Conformance harness** that reports a pass count (per-function WRAM checksum
-  match, the README's verification steps), with a baseline that fails on regression, like
-  Mario Paint's `tools/conformance.py`.
-- **Quick-start `Setup.cmd`** per the house rules (prerequisite checks, ROM
-  prompt, build, launcher shortcut). Not written yet; Getting Started is the
-  step-by-step route only.
-- **Installer** through [recomp-launcher](https://github.com/sp00nznet/recomp-launcher)
-  (`launcher/launcher.json`), as other titles are moving to.
+- **Play every mode through.** Stunt Trax, Battle Trax (2P) and Test Run are
+  untried, and no race has been driven to the finish yet. Extend the scripted
+  tour so conformance covers them.
+- **Grow the verified intercept set** (`k_intercepts` in `src/main/main.c`).
+  `scratch/conf/verified.txt` from `tools/conformance.py` lists the hand-ports
+  that pass lockstep validation; promote them, then fix the failing ones
+  (`scratch/conf/results.txt` names the first mismatch of each).
+- **GSU timing.** The new core's clock costs are approximate (no ROM/RAM wait
+  states), so the frame rate may differ from hardware. Measure it against real
+  hardware footage before tuning.
+- **Lift the GSU programs.** The 3D renderer still runs on the GSU emulation;
+  recompiling GSU code is a toolkit feature snesrecomp doesn't have yet.
+- **Release:** a first tag, and a build through recomp-launcher.
 
-## Not yet started
+## Not yet hand-ported to C (these run on the genuine ROM today)
 
 | Component | Notes |
 |-----------|-------|

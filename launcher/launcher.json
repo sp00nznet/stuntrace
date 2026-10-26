@@ -1,0 +1,17 @@
+{
+  "title": "Stunt Race FX",
+  "repo": "sp00nznet/stuntrace",
+  "accent": "#e4007f",
+  "note": {
+    "windows": "Needs your own Stunt Race FX (USA) ROM (a .sfc, .smc, or a .zip with one in it). The first build takes about 5 minutes and 1.5 GB. Git, CMake and the Visual Studio Build Tools (about 3 GB) are installed if they are missing; SDL2 comes through vcpkg.",
+    "default": "Windows only for now."
+  },
+  "game": {
+    "name": "Stunt Race FX (USA) ROM",
+    "files": ["*.sfc|*.smc|*.zip"]
+  },
+  "setup": {
+    "windows": ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "tools\setup.ps1", "-Yes", "-Game", "{game}"]
+  },
+  "play": "* (recomp).cmd"
+}

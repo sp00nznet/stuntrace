@@ -21,3 +21,6 @@ gen/
 scratch/
 build-farm/
 __pycache__/
+deps/
+logs/
+* (recomp).cmd

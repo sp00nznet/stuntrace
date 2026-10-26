@@ -25,7 +25,7 @@ jobs:
       - name: Build
         run: cmake --build build --config Release
 
-      # The ROM cannot be distributed, and there is no conformance harness yet
-      # (ROADMAP.md). CI proves the tree builds.
+      # The ROM cannot be distributed, so on CI the harness reports SKIP; the
+      # pass count comes from a run with the owner's ROM (README, Conformance).
       - name: Conformance
-        run: echo "Conformance skipped - no harness yet (ROADMAP.md), and it would need a user-supplied ROM."
+        run: python tools/conformance.py

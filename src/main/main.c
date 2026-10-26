@@ -101,25 +101,37 @@ static int run_shells(void) {
     return 0;
 }
 
+/* Parse "addr:l,addr:s,..." (l = JSL/RTL, s = JSR/RTS) and hand each entry to
+ * `add`. Returns the entry count. */
+static int add_addr_list(const char *list, void (*add)(uint32_t, bool)) {
+    if (!list || !*list) return 0;
+    char *buf = strdup(list);
+    int n = 0;
+    for (char *tok = strtok(buf, ","); tok; tok = strtok(NULL, ",")) {
+        unsigned addr = 0; char kind = 'l';
+        sscanf(tok, "%x:%c", &addr, &kind);
+        add(addr, kind != 's' && kind != 'S');
+        n++;
+    }
+    free(buf);
+    return n;
+}
+
 /* ── real-frame model (optionally with timed interception) ────── */
 static int run_realframe(bool intercept) {
+    /* SRF_VALIDATE="addr:l,..." — lockstep validation (any mode): on each call
+     * the recompiled body runs on a copy of the machine, the genuine routine
+     * runs for real, and memory/registers are compared when it returns.
+     * Execution stays genuine. tools/conformance.py drives this. */
+    int nval = add_addr_list(getenv("SRF_VALIDATE"), recomp_timed_add_validate);
+    if (nval) printf("Lockstep validation: %d functions.\n", nval);
+
     if (intercept) {
         /* SRF_INTERCEPT overrides the built-in list for per-function bisection:
          * "addr:l,addr:s,..." (l=JSL/RTL, s=JSR/RTS). e.g.
          *   SRF_INTERCEPT=0BB4C3:s   intercepts only the entity allocator. */
-        const char *ov = getenv("SRF_INTERCEPT");
-        if (ov && *ov) {
-            char buf[512]; strncpy(buf, ov, sizeof(buf) - 1); buf[sizeof(buf) - 1] = 0;
-            int n = 0;
-            for (char *tok = strtok(buf, ","); tok; tok = strtok(NULL, ",")) {
-                unsigned addr = 0; char kind = 'l';
-                sscanf(tok, "%x:%c", &addr, &kind);
-                bool is_long = (kind != 's' && kind != 'S');
-                recomp_timed_add_intercept(addr, is_long);
-                printf("  intercept: $%06X  %-4s  (SRF_INTERCEPT)\n",
-                       addr, is_long ? "RTL" : "RTS");
-                n++;
-            }
+        int n = add_addr_list(getenv("SRF_INTERCEPT"), recomp_timed_add_intercept);
+        if (n) {
             printf("Timed-recomp interception enabled (%d entries, override).\n", n);
         } else {
             for (int i = 0; i < k_intercept_count; i++) {
@@ -165,8 +177,10 @@ static int run_realframe(bool intercept) {
         snesrecomp_dump_snapshot(snap);
         printf("Snapshot written: %s\n", snap);
     }
-    printf("\n=== Hottest recompilation targets (profiler) ===\n");
-    recomp_timed_profile_dump(30);
+    if (nval) recomp_timed_validate_report();
+    /* Profile to stderr: SRF_PROFILE=N targets (default 30). */
+    const char *prof = getenv("SRF_PROFILE");
+    recomp_timed_profile_dump(prof ? atoi(prof) : 30);
     return 0;
 }
 

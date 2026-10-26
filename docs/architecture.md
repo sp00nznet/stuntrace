@@ -29,7 +29,13 @@ Most SNES recompilations only need to worry about the 65816. Stunt Race FX broug
 
 This means we're not just recompiling one CPU — we're recompiling *two*. Buckle up.
 
-We built a **complete GSU-2 emulator from scratch**. It lives in the [LakeSnes fork](https://github.com/sp00nznet/LakeSnes) that [snesrecomp](https://github.com/sp00nznet/snesrecomp) builds on (`ext/snesrecomp/ext/LakeSnes/snes/gsu.c`), so any Super FX recompilation gets it. Full instruction set, pixel cache, instruction cache, the works. Written in pure C, MIT licensed, zero external dependencies.
+The GSU-2 lives in the [LakeSnes fork](https://github.com/sp00nznet/LakeSnes)
+that [snesrecomp](https://github.com/sp00nznet/snesrecomp) builds on
+(`ext/snesrecomp/ext/LakeSnes/snes/gsu.c`), so every Super FX title gets it. It
+was rewritten in October 2026 from the fullsnes documentation alone (the first
+version mis-decoded much of the opcode map and the game never got past the
+Nintendo logo); see [super-fx.md](super-fx.md). It is clocked alongside the
+65816, so the CPU runs while the GSU draws, exactly as on the cartridge.
 
 ## Rendering pipeline
 

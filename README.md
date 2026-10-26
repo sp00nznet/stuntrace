@@ -33,50 +33,79 @@ code is never committed, and every build runs headless.
 
 ## Status
 
-**Alpha. Unversioned.** What runs today, checked headless on the current build
-(2026-10-20, `--headless --record`, realframe mode):
+**Alpha. Unversioned. Playable from boot into a race.** Checked headless on the
+current build (2026-10-26, realframe mode, scripted joypad):
 
-- The ROM loads, the Super FX GSU-2 is detected and initialised, and the boot
-  draws the **Nintendo logo**. After that the screen stays **black** (checked
-  to frame 6000). Getting past it is the top item in [ROADMAP.md](ROADMAP.md).
-- **82 routines** are hand-translated to C ([docs/functions.md](docs/functions.md));
-  **one** (`$0B:B4C3`, the entity allocator) is verified bit-exact against
-  the ROM and runs natively in `intercept` mode.
+- Boot, title screen, Game Selection, Car Selection (the GSU-rendered 3D car),
+  the Speed Trax course menu, and a race all run: countdown, driving, speed,
+  rank and timer. This needed a rewritten Super FX core in LakeSnes
+  ([docs/super-fx.md](docs/super-fx.md)); before it the game stopped on a
+  black screen after the Nintendo logo.
+- The genuine ROM does the running. **82 routines** are hand-translated to C
+  ([docs/functions.md](docs/functions.md)); `intercept` mode runs the verified
+  ones natively in place of the ROM.
+- **Conformance: 17/55.** Of the 55 hand-ported routines the title-to-race
+  tour reaches, 17 match the ROM on every checked call (`tools/conformance.py`,
+  below; 2026-10-26). The other 38 are older hand-ports with known mismatches;
+  each one's first mismatch is in `scratch/conf/results.txt`.
 - Builds with MSVC 2022 and, on the netlab farm, with mingw-w64.
-
-No conformance pass count yet: there is no harness that reports one
-(ROADMAP).
+- Not checked yet: the other modes (Stunt Trax, Battle Trax, Test Run), a full
+  race to the finish, audio quality, and timing against real hardware (the
+  GSU's clock costs are approximate).
 
 ## Screenshots
 
-The boot, from a headless run of the current build:
+From headless runs of the current build:
 
-![Nintendo logo during boot](docs/screenshots/boot-nintendo-logo.png)
+| | |
+|---|---|
+| ![Title screen](docs/screenshots/title.png) | ![Game selection](docs/screenshots/game-selection.png) |
+| ![Car selection, the 3D car is drawn by the Super FX](docs/screenshots/car-selection.png) | ![Race start](docs/screenshots/race-start.png) |
+| ![Racing on Speed Trax](docs/screenshots/race.png) | ![Nintendo logo during boot](docs/screenshots/boot-nintendo-logo.png) |
 
 ## Getting Started
 
-Step by step, on Windows. (A one-click `Setup.cmd` is on the [ROADMAP](ROADMAP.md).)
+Two routes that end in the same place: Quick start for a double-click install,
+Step by step for the commands it runs.
+
+### Quick start (Windows)
+
+1. Download the source ([Code → Download ZIP](https://github.com/sp00nznet/stuntrace/archive/refs/heads/main.zip)) and unzip it.
+2. Put your Stunt Race FX (USA) ROM in that folder: a `.sfc`, `.smc`, or a `.zip`
+   with one inside (see "ROM required" below).
+3. Double-click **`Setup.cmd`**. It checks for Git, CMake and the Visual Studio
+   C++ build tools and asks before installing any that are missing (with winget).
+   It finds your ROM by checksum, fetches snesrecomp and SDL2 (through vcpkg,
+   in `deps\`), and builds. The first run takes about 5 minutes. A rerun
+   skips what's done.
+4. Double-click **`Stunt Race FX (recomp).cmd`** to play.
+
+If it stops, it says what to do in one sentence. The details are in
+`logs\setup.log`. The same script powers the
+[recomp-launcher](https://github.com/sp00nznet/recomp-launcher) install
+(`launcher/launcher.json`).
+
+### Step by step
+
+These are the commands `Setup.cmd` runs.
 
 1. **Install the tools:**
    - [Git](https://git-scm.com/download/win)
-   - [Visual Studio 2022](https://visualstudio.microsoft.com/vs/community/) (Community is fine) with **Desktop development with C++**. It includes CMake.
-   - [vcpkg](https://github.com/microsoft/vcpkg), then SDL2:
-     ```
-     git clone https://github.com/microsoft/vcpkg C:\vcpkg
-     C:\vcpkg\bootstrap-vcpkg.bat
-     C:\vcpkg\vcpkg install sdl2:x64-windows
-     ```
-2. **Get the source, with its submodules** (snesrecomp, and LakeSnes inside it, which has the GSU-2):
+   - [Visual Studio 2022](https://visualstudio.microsoft.com/vs/community/) (Community or Build Tools) with **Desktop development with C++**. It includes CMake.
+2. **Get the source, with its submodules** (snesrecomp, and LakeSnes inside it, which has the GSU-2), and SDL2 through a vcpkg kept in `deps\`:
    ```
    git clone --recursive https://github.com/sp00nznet/stuntrace.git
    cd stuntrace
+   git clone https://github.com/microsoft/vcpkg deps\vcpkg
+   deps\vcpkg\bootstrap-vcpkg.bat -disableMetrics
+   deps\vcpkg\vcpkg install sdl2:x64-windows
    ```
    If you cloned without `--recursive`: `git submodule update --init --recursive`.
    Check it worked: `ext\snesrecomp\ext\LakeSnes\snes\gsu.c` must exist.
 3. **Build** (from a *Developer PowerShell for VS 2022*):
    ```
-   cmake -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
-   cmake --build build --config Release
+   cmake -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_TOOLCHAIN_FILE=deps/vcpkg/scripts/buildsystems/vcpkg.cmake
+   cmake --build build --config Release --parallel
    ```
 4. **Add your ROM.** Put your own dump in the `stuntrace` folder as `Stunt Race FX (USA).sfc`
    (see "ROM required" below).
@@ -135,11 +164,35 @@ The launcher selects its execution model via the `SRF_MODE` environment variable
 
 | `SRF_MODE` | What runs | Use |
 |------------|-----------|-----|
-| `realframe` *(default)* | The genuine ROM on LakeSnes's cycle-accurate CPU (GSU-2 included). The genuine game code runs (today it reaches the Nintendo logo, then a black screen; see Status). The call-target profiler ranks the hottest JSR/JSL targets on exit (your best recompilation candidates). | Play the full game; find what to recompile next. |
+| `realframe` *(default)* | The genuine ROM on LakeSnes's cycle-accurate CPU (GSU-2 included). The whole game runs. The call-target profiler ranks the hottest JSR/JSL targets on exit (your best recompilation candidates). | Play the full game; find what to recompile next. |
 | `intercept` | `realframe` **+ timed-recomp interception**: recompiled functions run *in place of* their ROM subroutines while everything else stays on the timed CPU. Coverage grows function-by-function toward 100% native. | The incremental static-recompilation path. |
 | `shells` | Legacy hand-stitched frame model (manual NMI + main-loop dispatch per frame). | Regression only. |
 
-Helper env vars: `SRF_MAX_FRAMES=N` (headless auto-stop, so the profiler/checksum print on exit); `SRF_INTERCEPT="addr:l,addr:s,…"` (override the intercept set for per-function bisection — `l`=JSL/RTL, `s`=JSR/RTS).
+Helper env vars:
+
+- `SRF_MAX_FRAMES=N`: stop after N frames, so the profiler and checksum print on exit.
+- `SRF_INTERCEPT="addr:l,addr:s,..."`: override the intercept set for per-function bisection (`l` = JSL/RTL, `s` = JSR/RTS).
+- `SRF_VALIDATE="addr:l,..."`: lockstep-validate those routines against the ROM in any mode.
+- `SRF_PROFILE=N`: how many profiler rows to print to stderr (default 30).
+
+### Scripted input
+
+snesrecomp's `SNESRECOMP_PAD_SCRIPT` drives the joypad in a headless run. This one goes from boot into a Speed Trax race and holds B to drive, with a screenshot mid-race:
+
+```
+set SNESRECOMP_PAD_SCRIPT=450:START 600:START 720:START 840:START 960:START 1080:START 1200:START 1320:START 1500:START 1650:START 1800:START 1950-3000:B
+set SNESRECOMP_SHOT_FRAMES=2300
+set SRF_MAX_FRAMES=2400
+build\Release\srf_launcher.exe "Stunt Race FX (USA).sfc" --headless
+```
+
+### Conformance
+
+```
+py tools/conformance.py "Stunt Race FX (USA).sfc"
+```
+
+It plays that same tour twice. The first run, on the genuine ROM, lists every hand-ported routine the tour calls. The second runs each of them under snesrecomp's lockstep validation. On every call the C body runs on a copy of the machine and its memory is compared with what the ROM did. It prints `conformance: P/N pass`, writes per-routine lines to `scratch/conf/results.txt`, and exits 1 if the pass count falls below `tools/conformance_baseline.txt`. Without the ROM it prints a SKIP line, as it does in CI. `scratch/conf/verified.txt` lists the passing routines in `SRF_INTERCEPT` format; they are the candidates for `k_intercepts`.
 
 ### Verifying a recompiled function is faithful
 
@@ -167,6 +220,7 @@ cmake --build build
 ## Documentation
 
 - [docs/architecture.md](docs/architecture.md): how it fits together, the Super FX, rendering pipeline, WRAM map, project layout.
+- [docs/super-fx.md](docs/super-fx.md): why the game stopped after the Nintendo logo, and what the rewritten GSU-2 core does.
 - [docs/functions.md](docs/functions.md): every recompiled routine, by subsystem.
 - [ROADMAP.md](ROADMAP.md), [CHANGELOG.md](CHANGELOG.md), [CONTRIBUTING.md](CONTRIBUTING.md).
 

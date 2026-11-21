@@ -5,6 +5,8 @@ versions follow SemVer once the first one is tagged (none yet).
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-11-20
+
 ### Added
 - `tools/conformance.py`: plays a scripted title-to-race tour twice. The first
   run finds the hand-ported routines it reaches; the second checks each one
